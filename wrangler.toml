@@ -1,0 +1,7 @@
+name = "b-a-platform"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "out"
+
+[env.production]
+# 무료 변수 예시
+# CONTACT_EMAIL = "contact@b-a.asia"
