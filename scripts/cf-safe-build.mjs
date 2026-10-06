@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 /**
  * b-a static build
- * Priority:
- *  1) scripts/ba.partNN.b64 (gzip of full React artifact UI)
- *  2) scripts/full-page.chunk*.txt
- *  3) scripts/full-page.html + zip footer inject
+ *
+ * UI source priority:
+ *  1) scripts/full-page.html  — if it is the full React artifact (contains Bc.createRoot)
+ *  2) scripts/ba.partNN.b64   — gzip shards of the React artifact (optional)
+ *  3) scripts/full-page.html  — simplified page + zip footer inject
+ *  4) BA_UI_URL env           — fetch full HTML at build time (optional)
+ *
+ * To install the attached B-A-Execution-Platform.html UI:
+ *   node scripts/install-artifact.mjs path/to/B-A-Execution-Platform.html
+ *   git add scripts/full-page.html && git commit && git push
  */
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 
@@ -74,18 +80,21 @@ function scrub(text) {
     .replaceAll('hello@b-a.kr', 'info@bambooasia.biz')
     .replaceAll('contact@b-a.asia', 'info@bambooasia.biz');
 }
+function isReactArtifact(html) {
+  return html.includes('Bc.createRoot') || html.includes('createRoot') && html.includes('EXECUTION');
+}
 function loadBaParts() {
   const dir = join(root, 'scripts');
   if (!existsSync(dir)) return null;
   const parts = readdirSync(dir)
     .filter((f) => /^ba\.part\d+\.b64$/.test(f))
     .sort((a, b) => Number(a.match(/part(\d+)/)[1]) - Number(b.match(/part(\d+)/)[1]));
-  if (parts.length < 5) return null;
+  if (parts.length < 8) return null;
   const b64 = parts.map((f) => readFileSync(join(dir, f), 'utf8')).join('').replace(/\s+/g, '');
   try {
     const html = gunzipSync(Buffer.from(b64, 'base64')).toString('utf8');
-    if (html.includes('EXECUTION') && html.includes('inquiry')) {
-      console.log('[cf-safe-build] loaded React artifact UI from ba.part*.b64 (' + parts.length + ' parts)');
+    if (isReactArtifact(html)) {
+      console.log('[cf-safe-build] loaded React UI from ba.part*.b64 (' + parts.length + ')');
       return html;
     }
   } catch (e) {
@@ -93,17 +102,20 @@ function loadBaParts() {
   }
   return null;
 }
-function loadChunks() {
-  const dir = join(root, 'scripts');
-  if (!existsSync(dir)) return null;
-  const parts = readdirSync(dir)
-    .filter((f) => /^full-page\.chunk\d+\.txt$/.test(f))
-    .sort((a, b) => Number(a.match(/chunk(\d+)/)[1]) - Number(b.match(/chunk(\d+)/)[1]));
-  if (parts.length < 2) return null;
-  return parts.map((f) => readFileSync(join(dir, f), 'utf8')).join('');
+async function loadFromUrl() {
+  const url = process.env.BA_UI_URL;
+  if (!url) return null;
+  console.log('[cf-safe-build] fetching BA_UI_URL', url);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('BA_UI_URL fetch failed ' + res.status);
+  const html = await res.text();
+  if (!isReactArtifact(html) && !html.includes('EXECUTION')) {
+    console.warn('[cf-safe-build] BA_UI_URL content looks incomplete');
+  }
+  return html;
 }
 function applyZipFooter(html) {
-  if (html.includes('React') && html.includes('Bc.createRoot')) return html;
+  if (isReactArtifact(html)) return html; // artifact already has full footer
   let out = html;
   if (!out.includes('footer-cols') && out.includes('</style>')) {
     out = out.replace('</style>', ZIP_FOOTER_CSS + '\n</style>');
@@ -111,19 +123,34 @@ function applyZipFooter(html) {
   if (out.includes('<footer')) out = out.replace(/<footer[\s\S]*?<\/footer>/, ZIP_FOOTER);
   return out;
 }
-function loadFullPage() {
-  return loadBaParts() || loadChunks() || (existsSync(FULL) ? readFileSync(FULL, 'utf8') : null);
+async function loadFullPage() {
+  if (existsSync(FULL)) {
+    const html = readFileSync(FULL, 'utf8');
+    if (isReactArtifact(html) || statSync(FULL).size > 100000) {
+      console.log('[cf-safe-build] loaded React artifact from full-page.html');
+      return html;
+    }
+  }
+  const fromParts = loadBaParts();
+  if (fromParts) return fromParts;
+  const fromUrl = await loadFromUrl();
+  if (fromUrl) return fromUrl;
+  if (existsSync(FULL)) {
+    console.log('[cf-safe-build] loaded simplified full-page.html');
+    return readFileSync(FULL, 'utf8');
+  }
+  return null;
 }
 
 async function main() {
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   ensureDir(outDir);
-  const raw = loadFullPage();
+  const raw = await loadFullPage();
   if (!raw) { console.error('[cf-safe-build] FATAL: no UI source'); process.exit(1); }
   const html = applyZipFooter(scrub(raw));
   writeOut('index.html', html);
   if (existsSync(I18N)) writeOut('i18n.js', readFileSync(I18N, 'utf8'));
   writeOut('404.html', '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>');
-  console.log('[cf-safe-build] done', html.includes('EXECUTION') ? 'EXECUTION ok' : 'missing EXECUTION');
+  console.log('[cf-safe-build] done | react=', isReactArtifact(html), '| EXECUTION=', html.includes('EXECUTION'));
 }
 main().catch((e) => { console.error(e); process.exit(1); });
