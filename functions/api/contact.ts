@@ -1,3 +1,8 @@
+/**
+ * Cloudflare Pages Function — /api/contact
+ * Runtime: Cloudflare Workers (not Next.js). Types must not rely on PagesFunction global.
+ */
+
 export interface Env {
   CONTACT_EMAIL?: string;
   RESEND_API_KEY?: string;
@@ -15,13 +20,18 @@ type Inquiry = {
   need?: string;
 };
 
-const corsHeaders = {
+type PagesContext = {
+  request: Request;
+  env: Env;
+};
+
+const corsHeaders: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-export const onRequestPost: PagesFunction<Env> = async (context) => {
+export const onRequestPost = async (context: PagesContext): Promise<Response> => {
   if (context.request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
@@ -110,7 +120,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       success: true,
       message: '문의가 접수되었습니다.',
       savedToSheet: sheetsOk,
-      ...(sheetsError && !sheetsOk ? { sheetWarning: '시트 저장 실패 — 로그/이메일을 확인하세요.' } : {}),
+      ...(sheetsError && !sheetsOk
+        ? { sheetWarning: '시트 저장 실패 — 로그/이메일을 확인하세요.' }
+        : {}),
     });
   } catch (e) {
     console.error('contact handler error:', e);
@@ -118,7 +130,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 };
 
-function json(body: unknown, status = 200) {
+function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { 'Content-Type': 'application/json', ...corsHeaders },
