@@ -1,1 +1,399 @@
-PLACEHOLDER_WILL_FAIL
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>b/a - 베트남 사업 실행 플랫폼</title>
+<meta name="description" content="베트남 진출의 모든 과정을 하나의 파트너와 함께"/>
+<link rel="canonical" href="https://b-a.bambooasia.biz/"/>
+<meta name="theme-color" content="#101828"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;font-family:Geist,'Noto Sans KR',system-ui,sans-serif}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{margin:0;background:#F9F5EB;color:#101828;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}
+.wrap{max-width:1280px;margin:0 auto;padding:0 1.25rem}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.06)}
+.hbar{height:64px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:.65rem}
+.logo-box{height:28px;width:44px;border-radius:8px;background:#101828;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.brand-sub{font-size:11px;line-height:1.1;font-weight:500;color:#475467;text-transform:uppercase}
+.nav{display:none;gap:2px}@media(min-width:1024px){.nav{display:flex}}
+.nav a{padding:.5rem .75rem;border-radius:999px;font-size:13.5px;font-weight:500;color:#344054}
+.nav a:hover{background:#F3F4F6}
+.h-right{display:flex;align-items:center;gap:.5rem}
+.langs{display:flex;background:#F3F4F6;border-radius:999px;padding:4px}
+.langs button{border:0;background:transparent;padding:.25rem .65rem;border-radius:999px;font-size:11px;font-weight:600;color:#667085}
+.langs button.active{background:#101828;color:#fff}
+.btn-cta{height:40px;padding:0 1.1rem;border-radius:999px;background:#16A34A;color:#fff;border:0;font-size:13px;font-weight:600}
+.btn-cta:hover{background:#22C55E}
+.hero{background:#101828;color:#fff;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(to bottom,#1D2939,#101828)}
+.blob1{position:absolute;top:-30%;right:-10%;width:70%;height:80%;border-radius:50%;background:rgba(22,163,74,.12);filter:blur(90px)}
+.blob2{position:absolute;top:20%;left:-10%;width:40%;height:60%;border-radius:50%;background:rgba(245,158,11,.08);filter:blur(80px)}
+.hero-inner{position:relative;padding:56px 0;display:grid;gap:2.5rem}
+@media(min-width:1024px){.hero-inner{grid-template-columns:1.15fr .85fr;padding:84px 0;align-items:center}}
+.eyebrow{display:inline-flex;align-items:center;gap:.5rem;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);padding:.25rem .75rem;font-size:11px;letter-spacing:.14em;color:rgba(255,255,255,.7)}
+.dot{height:6px;width:6px;border-radius:50%;background:#16A34A}
+.hero h1{margin:1.5rem 0 0;font-size:32px;font-weight:700;line-height:1.05;letter-spacing:-.03em}
+@media(min-width:1024px){.hero h1{font-size:52px}}
+.hero .sub{margin:1.25rem 0 0;max-width:56ch;font-size:15.5px;line-height:1.7;color:rgba(255,255,255,.7)}
+.hero-ctas{margin-top:2rem;display:flex;flex-wrap:wrap;gap:.75rem}
+.btn-hero{height:48px;padding:0 1.5rem;border-radius:999px;background:#16A34A;color:#fff;border:0;font-size:14.5px;font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
+.btn-ghost{height:48px;padding:0 1.5rem;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:#fff;font-size:14.5px;font-weight:500;display:inline-flex;align-items:center}
+.pillars{margin-top:2.5rem;max-width:520px;display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;border-top:1px solid rgba(255,255,255,.1);padding-top:1.5rem}
+.pillars strong{display:block;font-size:13px;margin-bottom:.25rem}
+.pillars span{font-size:11.5px;color:rgba(255,255,255,.55)}
+.diagram{position:relative;height:320px;display:flex;align-items:center;justify-content:center}
+.diagram-ring{position:absolute;width:280px;height:280px;border-radius:50%;border:1px solid rgba(255,255,255,.08)}
+.diagram-center{position:relative;z-index:2;height:86px;width:86px;border-radius:20px;background:#fff;color:#101828;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.diagram-center .t1{font-size:20px;font-weight:900}
+.diagram-center .t2{font-size:9px;font-weight:700;letter-spacing:.18em;opacity:.6}
+.dnode{position:absolute;z-index:2;padding:.5rem .7rem;border-radius:12px;font-size:12px;font-weight:600;text-align:center;min-width:84px}
+.dnode small{display:block;font-size:9px;opacity:.75;margin-top:2px}
+.dnode.c1{background:#16A34A;color:#fff}.dnode.c2{background:#F59E0B;color:#fff}
+.dnode.c3{background:#3B82F6;color:#fff}.dnode.c4{background:#8B5CF6;color:#fff}
+.dnode.c5{background:#F3F4F6;color:#101828}
+.svc-nav{position:sticky;top:64px;z-index:30;background:rgba(249,245,235,.85);backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,.05)}
+.svc-nav-inner{display:flex;gap:.25rem;overflow-x:auto;padding:.65rem 0}
+.svc-nav button{flex:0 0 auto;border:0;background:transparent;padding:.4rem .85rem;border-radius:999px;font-size:12.5px;font-weight:600;color:#667085}
+.svc-nav button.active,.svc-nav button:hover{background:#101828;color:#fff}
+main{padding:2.5rem 0 3rem}
+.sec{display:grid;gap:2rem;margin-bottom:3.5rem}
+@media(min-width:1024px){.sec{grid-template-columns:1.05fr .95fr;gap:2.5rem}}
+.kicker{font-size:11px;font-weight:700;letter-spacing:.16em;color:#16A34A}
+h2{margin:.75rem 0 0;font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+.lead{margin:1rem 0 0;font-size:15px;line-height:1.7;color:#475467;max-width:48ch}
+.check{list-style:none;padding:0;margin:1.5rem 0 0;display:grid;gap:.75rem}
+@media(min-width:640px){.check{grid-template-columns:1fr 1fr}}
+.check li{display:flex;gap:.65rem;font-size:13.5px;color:#344054}
+.tick{height:20px;width:20px;border-radius:50%;background:rgba(22,163,74,.1);color:#16A34A;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.note{margin-top:1.5rem;border-radius:12px;background:#F3F4F6;border:1px solid rgba(0,0,0,.05);padding:12px 16px;font-size:13px;color:#344054}
+.board{border-radius:20px;background:#101828;color:#fff;padding:1.5rem;border:1px solid rgba(255,255,255,.05)}
+@media(min-width:1024px){.board{position:sticky;top:132px}}
+.board-head{display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.5)}
+.board-rows{margin-top:1.25rem;display:grid;gap:.75rem}
+.board-row{display:flex;justify-content:space-between;align-items:center;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);padding:12px 16px;font-size:13px}
+.badge{font-size:10px;font-weight:700;padding:4px 8px;border-radius:999px}
+.badge.y{background:#F59E0B;color:#000}.badge.g{background:#16A34A;color:#000}.badge.w{background:rgba(255,255,255,.2);color:rgba(255,255,255,.7)}
+.ind-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem;margin-top:1.25rem}
+@media(min-width:640px){.ind-grid{grid-template-columns:repeat(3,1fr)}}
+.ind-grid article{border-radius:16px;background:#fff;border:1px solid rgba(0,0,0,.06);padding:1rem}
+.ind-grid h3{margin:0;font-size:14px}.ind-grid p{margin:.35rem 0 0;font-size:12px;color:#667085}
+.process{border-radius:28px;background:#101828;color:#fff;padding:1.5rem;margin-bottom:3rem}
+.process h2{color:#fff}.process .lead{color:rgba(255,255,255,.6)}
+.steps{margin-top:1.5rem;display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+@media(min-width:768px){.steps{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1024px){.steps{grid-template-columns:repeat(6,1fr)}}
+.steps article{border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:1rem}
+.steps .num{font-size:11px;font-weight:700;color:#16A34A}
+.steps h3{margin:.4rem 0 0;font-size:14px}.steps p{margin:.35rem 0 0;font-size:12px;color:rgba(255,255,255,.55)}
+.two{display:grid;gap:1.5rem;margin-bottom:3rem}
+@media(min-width:768px){.two{grid-template-columns:1fr 1fr}}
+.panel{border-radius:20px;background:#fff;border:1px solid rgba(0,0,0,.06);padding:1.5rem}
+.targets{list-style:none;padding:0;margin:1rem 0 0;display:grid;gap:.5rem}
+.targets li{font-size:13.5px;padding:.65rem .85rem;border-radius:10px;background:#F9F5EB}
+.targets li::before{content:"▣ ";color:#16A34A}
+.strengths{margin-top:1rem;display:grid;gap:.65rem}
+.strengths article{padding:1rem;border-radius:12px;background:#F9F5EB}
+.strengths h3{margin:0;font-size:14px}.strengths p{margin:.25rem 0 0;font-size:12.5px;color:#667085}
+.pkgs{display:grid;gap:1rem;margin-top:1.5rem}
+@media(min-width:640px){.pkgs{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.pkgs{grid-template-columns:repeat(4,1fr)}}
+.pkgs article{border-radius:20px;background:#fff;border:1px solid rgba(0,0,0,.06);padding:1.35rem;display:flex;flex-direction:column;gap:.5rem}
+.pkgs .tag{width:fit-content;font-size:11px;font-weight:700;color:#16A34A;background:rgba(22,163,74,.1);padding:.25rem .6rem;border-radius:999px}
+.pkgs h3{margin:0;font-size:16px}.pkgs .desc{font-size:13px;color:#667085}
+.pkgs ul{list-style:none;padding:0;margin:0;display:grid;gap:.35rem;flex:1}
+.pkgs li{font-size:12.5px;padding-left:.9rem;position:relative}
+.pkgs li::before{content:"•";position:absolute;left:0;color:#16A34A}
+.pkgs a{margin-top:auto;display:inline-flex;align-items:center;justify-content:center;height:40px;border-radius:999px;background:#101828;color:#fff;font-size:13px;font-weight:600}
+.inquiry{background:#F9F5EB;border-top:1px solid rgba(0,0,0,.05);padding:3rem 0}
+.inquiry-grid{display:grid;gap:2rem}
+@media(min-width:1024px){.inquiry-grid{grid-template-columns:1.05fr .95fr}}
+.form-card{border-radius:20px;background:#fff;border:1px solid rgba(0,0,0,.06);padding:1.5rem}
+label{display:block;font-size:12px;font-weight:600;color:#475467;margin-bottom:.35rem}
+input,select,textarea{width:100%;height:44px;border:1px solid #E5E7EB;border-radius:12px;padding:0 .85rem;font:inherit;font-size:14px;margin-bottom:1rem}
+textarea{height:auto;padding:.75rem .85rem}
+.side-cards{display:grid;gap:.75rem}
+.side-cards article{border-radius:16px;background:#fff;border:1px solid rgba(0,0,0,.06);padding:1rem}
+.side-cards .n{font-size:11px;font-weight:700;color:#16A34A}
+.side-cards h3{margin:.25rem 0;font-size:14px}.side-cards p{margin:0;font-size:12.5px;color:#667085}
+.msg{margin-top:.5rem;padding:.75rem 1rem;border-radius:12px;font-size:13px;display:none}
+.msg.ok{display:block;background:#ecfdf5;color:#14532d}.msg.err{display:block;background:#fef2f2;color:#991b1b}
+footer{background:#fff;border-top:1px solid rgba(0,0,0,.05);padding:2rem 0}
+.f-bot{margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,.05);font-size:11px;color:#98A2B3;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<header><div class="wrap hbar">
+<div class="brand"><div class="logo-box">b/a</div><span class="brand-sub">Vietnam<br/>Execution Platform</span>
+<nav class="nav" id="navLinks"><a href="#svc-a">서비스</a><a href="#deal">거래·M&A</a><a href="#industry">산업별</a><a href="#security">보안·준법</a><a href="#operation">운영지원</a><a href="#process">절차</a></nav>
+</div>
+<div class="h-right">
+<div class="langs" id="langs"><button type="button" data-lang="KR" class="active">KR</button><button type="button" data-lang="EN">EN</button><button type="button" data-lang="VI">VI</button><button type="button" data-lang="JP">JP</button></div>
+<a class="btn-cta" href="#inquiry" id="ctaTop">실행 상담하기</a>
+</div></div></header>
+
+<section class="hero"><div class="hero-bg"></div><div class="blob1"></div><div class="blob2"></div>
+<div class="wrap hero-inner">
+<div>
+<div class="eyebrow"><span class="dot"></span><span id="eyebrow">VIETNAM BUSINESS EXECUTION PLATFORM</span></div>
+<h1 id="heroTitle">베트남 진출의 모든 과정을<br/>하나의 파트너와 함께</h1>
+<p class="sub" id="heroSub">법인설립, 거래·M&A, 산업별 현지화, 보안·준법, 현지 운영을 통합 지원합니다. 시장조사부터 사업 실행과 운영관리까지 복잡한 절차를 체계적으로 연결해 빠르고 안전한 베트남 사업 진입을 지원합니다.</p>
+<div class="hero-ctas">
+<a class="btn-hero" href="#inquiry" id="heroCTA1">실행 상담하기 →</a>
+<a class="btn-ghost" href="#plans" id="heroCTA2">서비스 상품 보기</a>
+</div>
+<div class="pillars" id="pillars">
+<div><strong>검증 기반</strong><span>사업성·권리·재무 단계별 확인</span></div>
+<div><strong>통합 PMO</strong><span>조사·설립·거래·운영 연결</span></div>
+<div><strong>지속 운영</strong><span>법인 설립 이후까지 관리</span></div>
+</div>
+</div>
+<div class="diagram" aria-hidden="true">
+<div class="diagram-ring"></div>
+<div class="diagram-center"><span class="t1">[ b/a ]</span><span class="t2">EXECUTION</span></div>
+<div class="dnode c1" style="top:6%;left:50%;transform:translateX(-50%)">법인설립<small>Incorporation</small></div>
+<div class="dnode c2" style="top:28%;right:0">거래·M&A<small>Transaction</small></div>
+<div class="dnode c3" style="bottom:16%;right:6%">현지화<small>Localization</small></div>
+<div class="dnode c4" style="bottom:16%;left:6%">보안·준법<small>Security</small></div>
+<div class="dnode c5" style="top:28%;left:0">운영지원<small>Operations</small></div>
+</div>
+</div></section>
+
+<div class="svc-nav"><div class="wrap svc-nav-inner" id="svcNav">
+<button type="button" data-go="svc-a" class="active">진출 실행</button>
+<button type="button" data-go="deal">거래·M&A</button>
+<button type="button" data-go="industry">산업별</button>
+<button type="button" data-go="security">보안·준법</button>
+<button type="button" data-go="operation">운영지원</button>
+<button type="button" data-go="process">절차</button>
+<button type="button" data-go="plans">상품</button>
+</div></div>
+
+<main class="wrap">
+<section class="sec" id="svc-a">
+<div>
+<div class="kicker" id="s1_kicker">01 / ENTRY EXECUTION</div>
+<h2 id="s1_title">베트남 진출 실행지원</h2>
+<p class="lead" id="s1_body">베트남 사업 진출에 필요한 주요 업무를 하나의 프로젝트로 관리합니다.</p>
+<ul class="check" id="s1_items">
+<li><span class="tick">✓</span>진출지역·업종 검토</li><li><span class="tick">✓</span>법인설립 및 투자절차 지원</li>
+<li><span class="tick">✓</span>현지 로펌·회계법인 연결</li><li><span class="tick">✓</span>공장·사무실·물류시설 탐색</li>
+<li><span class="tick">✓</span>현지 파트너 발굴</li><li><span class="tick">✓</span>인력·노무·회계 운영 연결</li>
+</ul>
+<div class="note" id="s1_note"><strong>통합 메모:</strong> 시장조사부터 법인설립과 운영 정착까지 함께합니다.</div>
+</div>
+<div class="board"><div class="board-head"><span>EXECUTION BOARD</span><span>PMO-2026</span></div>
+<div class="board-rows">
+<div class="board-row"><span>법인 형태·지역 진단</span><span class="badge y">진행중</span></div>
+<div class="board-row"><span>투자등록·사업등록 절차</span><span class="badge w">대기</span></div>
+<div class="board-row"><span>임대·파트너·인력 매칭</span><span class="badge g">검증중</span></div>
+</div></div>
+</section>
+
+<section class="sec" id="deal">
+<div>
+<div class="kicker" id="s2_kicker">02 / TRANSACTION</div>
+<h2 id="s2_title">기업·공장·부동산<br/>거래 및 M&A</h2>
+<p class="lead" id="s2_body">베트남 사업자산 거래를 지원합니다. 사업성·권리·재무·인허가를 단계별로 검토합니다.</p>
+<ul class="check" id="s2_steps">
+<li><span class="tick">✓</span>매수·매도 조건 분석</li><li><span class="tick">✓</span>대상 기업·프로젝트 발굴</li>
+<li><span class="tick">✓</span>비밀유지계약 및 자료관리</li><li><span class="tick">✓</span>법률·세무·재무 실사 연계</li>
+</ul>
+</div>
+<div class="board"><div class="board-head"><span>DEAL PIPELINE</span><span>VDR</span></div>
+<div class="board-rows">
+<div class="board-row"><span>대상 스크리닝</span><span class="badge g">완료</span></div>
+<div class="board-row"><span>NDA · 자료룸</span><span class="badge y">진행중</span></div>
+</div></div>
+</section>
+
+<section class="sec" id="industry">
+<div>
+<div class="kicker" id="s3_kicker">03 / LOCALIZATION</div>
+<h2 id="s3_title">산업별 현지화 솔루션</h2>
+<p class="lead" id="s3_body">업종과 진출 단계에 맞춰 현지 운영 서비스를 구성합니다.</p>
+<div class="ind-grid" id="industriesGrid">
+<article><h3>제조</h3><p>공장 · 생산 · 품질 · ERP</p></article>
+<article><h3>농업·식품</h3><p>생산 · 가공 · 창고 · 수출</p></article>
+<article><h3>물류</h3><p>창고 · 운송 · 재고 · 통관</p></article>
+<article><h3>관광·서비스</h3><p>호텔·리조트 · 예약 · 운영</p></article>
+<article><h3>유통</h3><p>공급자 · OEM·ODM · 수입</p></article>
+<article><h3>친환경 제조</h3><p>소재 · 생산 · 검사 · 수출</p></article>
+</div>
+</div>
+<div class="board"><div class="board-head"><span>INDUSTRY FIT</span><span>LOCAL</span></div>
+<div class="board-rows">
+<div class="board-row"><span>업종 맞춤 프로세스</span><span class="badge g">적용</span></div>
+</div></div>
+</section>
+
+<section class="sec" id="security">
+<div>
+<div class="kicker" id="s4_kicker">04 / SECURITY</div>
+<h2 id="s4_title">보안·준법·데이터 관리</h2>
+<p class="lead" id="s4_body">기업정보, 계약·재무자료, 개인정보를 안전하게 관리합니다.</p>
+<ul class="check" id="s4_items">
+<li><span class="tick">✓</span>고객·투자자 확인</li><li><span class="tick">✓</span>계약·NDA 관리</li>
+<li><span class="tick">✓</span>가상 데이터룸</li><li><span class="tick">✓</span>문서 암호화</li>
+</ul>
+</div>
+<div class="board"><div class="board-head"><span>CONTROL</span><span>SECURE</span></div>
+<div class="board-rows">
+<div class="board-row"><span>접근권한 · 암호화</span><span class="badge g">ON</span></div>
+</div></div>
+</section>
+
+<section class="sec" id="operation">
+<div>
+<div class="kicker" id="s5_kicker">05 / OPERATIONS</div>
+<h2 id="s5_title">베트남 현지 운영지원</h2>
+<p class="lead" id="s5_body">법인설립 이후 운영업무를 지속적으로 지원합니다.</p>
+<ul class="check" id="s5_items">
+<li><span class="tick">✓</span>회계·세무 일정관리</li><li><span class="tick">✓</span>노무·급여 운영</li>
+<li><span class="tick">✓</span>IT·클라우드·보안</li><li><span class="tick">✓</span>긴급 현지 대응</li>
+</ul>
+</div>
+<div class="board"><div class="board-head"><span>OPS DESK</span><span>ONGOING</span></div>
+<div class="board-rows">
+<div class="board-row"><span>월간 운영 리포트</span><span class="badge g">활성</span></div>
+</div></div>
+</section>
+
+<section class="process" id="process">
+<div class="kicker" style="color:#86efac">PROCESS</div>
+<h2 id="proc_title">이용 절차 — 6단계 실행 흐름</h2>
+<p class="lead" id="proc_sub">상담부터 운영관리까지 명확한 실행 구조.</p>
+<div class="steps" id="proc">
+<article><div class="num">01</div><h3>사업 상담</h3><p>업종·규모·지역</p></article>
+<article><div class="num">02</div><h3>진출 진단</h3><p>시장성·규제</p></article>
+<article><div class="num">03</div><h3>실행계획</h3><p>법인·거래·현지화</p></article>
+<article><div class="num">04</div><h3>전문기관 연결</h3><p>법률·세무·IT</p></article>
+<article><div class="num">05</div><h3>실행 관리</h3><p>일정·이슈 PMO</p></article>
+<article><div class="num">06</div><h3>운영 지원</h3><p>설립 이후 관리</p></article>
+</div>
+</section>
+
+<div class="two">
+<div class="panel">
+<h2 id="target_title">이런 기업에 적합합니다</h2>
+<ul class="targets" id="targets">
+<li>베트남 신규 진출을 준비하는 기업</li>
+<li>현지 공장 설립을 검토하는 제조기업</li>
+<li>기업·공장 인수를 검토하는 투자자</li>
+<li>현지 공급망·운영이 필요한 기업</li>
+</ul>
+</div>
+<div class="panel">
+<h2 id="strength_title">우리의 강점</h2>
+<div class="strengths" id="strengths">
+<article><h3>통합 실행</h3><p>조사·설립·거래·운영을 하나의 프로젝트로</p></article>
+<article><h3>검증 중심</h3><p>기업·권리·인허가·계약을 단계 확인</p></article>
+<article><h3>전문 네트워크</h3><p>법률·세무·회계·부동산·IT</p></article>
+</div>
+</div>
+</div>
+
+<section id="plans">
+<div class="kicker">PACKAGES</div>
+<h2 id="pkg_title">서비스 상품 — 목적별 모듈</h2>
+<p class="lead" id="pkg_sub">Entry → Growth → Transaction → Operation</p>
+<div class="pkgs" id="pkgs">
+<article><div class="tag">Entry</div><h3>진출 기본진단</h3><div class="desc">초기 검토와 실행계획</div><ul><li>지역·업종 검토</li><li>사업성 분석</li></ul><a href="#inquiry">문의하기</a></article>
+<article><div class="tag">Growth</div><h3>현지 실행 패키지</h3><div class="desc">설립부터 운영체계</div><ul><li>법인설립 PMO</li><li>전문기관 연결</li></ul><a href="#inquiry">문의하기</a></article>
+<article><div class="tag">Transaction</div><h3>거래·M&A 지원</h3><div class="desc">검증부터 종결</div><ul><li>조건 분석</li><li>실사·종결 관리</li></ul><a href="#inquiry">문의하기</a></article>
+<article><div class="tag">Operation</div><h3>현지법인 운영</h3><div class="desc">설립 이후 지속 운영</div><ul><li>회계·세무·노무</li><li>IT·보안·인허가</li></ul><a href="#inquiry">문의하기</a></article>
+</div>
+</section>
+</main>
+
+<section class="inquiry" id="inquiry">
+<div class="wrap inquiry-grid">
+<div>
+<h2 id="final_title">베트남 진출을<br/>검토하고 계신가요?</h2>
+<p class="lead" id="final_sub">사업 내용, 진출 지역, 투자 규모, 필요한 지원을 알려 주세요.</p>
+<p style="color:#16A34A;font-weight:600" id="final_cta">계획에서 실행으로 함께 진행합니다.</p>
+<div class="side-cards" id="after" style="margin-top:1.5rem">
+<article><div class="n">01</div><h3>진단 리포트 초안</h3><p>실행 가능성 검토</p></article>
+<article><div class="n">02</div><h3>PMO 로드맵</h3><p>법인·거래·운영 일정</p></article>
+<article><div class="n">03</div><h3>전문기관 매칭</h3><p>법률·세무·부동산·IT</p></article>
+</div>
+</div>
+<div class="form-card">
+<h3 id="form_title" style="margin:0 0 .5rem;font-size:16px">실행 상담 문의</h3>
+<p style="font-size:12.5px;color:#667085;margin:0 0 1rem" id="form_note">접수 후 확인하여 연락드립니다.</p>
+<form id="inquiryForm">
+<label id="l_company">회사명 *</label><input name="company" id="company" required/>
+<label id="l_name">담당자</label><input name="name" id="name"/>
+<label id="l_email">이메일 *</label><input name="email" id="email" type="email" required/>
+<label id="l_industry">업종</label><select name="industry" id="industry"><option value="">선택</option><option>제조</option><option>농업·식품</option><option>물류</option><option>IT</option><option>유통</option><option>기타</option></select>
+<label id="l_scale">투자규모</label><select name="scale" id="scale"><option value="">선택</option><option>~50만 USD</option><option>50만~200만 USD</option><option>200만 USD+</option></select>
+<label id="l_region">진출지역</label><input name="region" id="region"/>
+<label id="l_need">지원 내용</label><textarea name="need" id="need" rows="4"></textarea>
+<button type="submit" class="btn-cta" id="submitBtn" style="width:100%;height:48px">보내기</button>
+<div id="result" class="msg"></div>
+</form>
+<p style="margin-top:1rem;font-size:12.5px;color:#667085"><a href="mailto:info@bambooasia.biz" style="color:#16A34A;font-weight:600">info@bambooasia.biz</a> · b-a.bambooasia.biz</p>
+</div>
+</div>
+</section>
+
+<footer><div class="wrap">
+<div style="display:flex;align-items:center;gap:.65rem"><div class="logo-box">b/a</div><span style="font-size:13px;font-weight:600">베트남 사업 실행 플랫폼</span></div>
+<p style="margin:.75rem 0 0;font-size:12.5px;color:#667085;max-width:40ch">시장조사부터 법인설립, 거래, 현지화, 운영까지. 베트남 사업 진입을 위한 실행 플랫폼.</p>
+<div class="f-bot"><span>© <span id="year"></span> b/a — Vietnam Business Execution Platform</span><span>Built as secure execution platform</span></div>
+</div></footer>
+
+<script src="/i18n.js"></script>
+<script>
+let lang='KR';const $=id=>document.getElementById(id);
+function setText(id,v){const el=$(id);if(el)el.innerHTML=String(v).replace(/\n/g,'<br/>');}
+function render(){
+ if(typeof I18N==='undefined')return;const t=I18N[lang];if(!t)return;
+ document.documentElement.lang={KR:'ko',EN:'en',VI:'vi',JP:'ja'}[lang]||'ko';
+ const a=['#svc-a','#deal','#industry','#security','#operation','#process'];
+ $('navLinks').innerHTML=t.nav.map((n,i)=>`<a href="${a[i]||'#inquiry'}">${n}</a>`).join('');
+ setText('ctaTop',t.ctaTop);setText('eyebrow',t.eyebrow);setText('heroTitle',t.heroTitle);setText('heroSub',t.heroSub);
+ setText('heroCTA1',t.heroCTA1+' →');setText('heroCTA2',t.heroCTA2);
+ $('pillars').innerHTML=t.pillars.map(([x,y])=>`<div><strong>${x}</strong><span>${y}</span></div>`).join('');
+ setText('s1_kicker',t.s1_kicker);setText('s1_title',t.s1_title);setText('s1_body',t.s1_body);
+ $('s1_items').innerHTML=t.s1_items.map(x=>`<li><span class="tick">✓</span>${x}</li>`).join('');
+ setText('s1_note','<strong>통합 메모:</strong> '+t.s1_note);
+ setText('s2_kicker',t.s2_kicker);setText('s2_title',t.s2_title);setText('s2_body',t.s2_body);
+ $('s2_steps').innerHTML=t.s2_steps.slice(0,6).map(x=>`<li><span class="tick">✓</span>${x}</li>`).join('');
+ setText('s3_kicker',t.s3_kicker);setText('s3_title',t.s3_title);setText('s3_body',t.s3_body);
+ $('industriesGrid').innerHTML=t.industries.map(([h,p])=>`<article><h3>${h}</h3><p>${p}</p></article>`).join('');
+ setText('s4_kicker',t.s4_kicker);setText('s4_title',t.s4_title);setText('s4_body',t.s4_body);
+ $('s4_items').innerHTML=t.s4_items.slice(0,6).map(x=>`<li><span class="tick">✓</span>${x}</li>`).join('');
+ setText('s5_kicker',t.s5_kicker);setText('s5_title',t.s5_title);setText('s5_body',t.s5_body);
+ $('s5_items').innerHTML=t.s5_items.slice(0,6).map(x=>`<li><span class="tick">✓</span>${x}</li>`).join('');
+ setText('proc_title',t.proc_title);setText('proc_sub',t.proc_sub);
+ $('proc').innerHTML=t.proc.map(([x,y],i)=>`<article><div class="num">${String(i+1).padStart(2,'0')}</div><h3>${x}</h3><p>${y}</p></article>`).join('');
+ setText('target_title',t.target_title);$('targets').innerHTML=t.targets.slice(0,5).map(x=>`<li>${x}</li>`).join('');
+ setText('strength_title',t.strength_title);$('strengths').innerHTML=t.strengths.map(([x,y])=>`<article><h3>${x}</h3><p>${y}</p></article>`).join('');
+ setText('pkg_title',t.pkg_title);setText('pkg_sub',t.pkg_sub);
+ $('pkgs').innerHTML=t.packages.map(([tag,title,desc,items])=>`<article><div class="tag">${tag}</div><h3>${title}</h3><div class="desc">${desc}</div><ul>${items.slice(0,3).map(i=>`<li>${i}</li>`).join('')}</ul><a href="#inquiry">${t.pkg_btn}</a></article>`).join('');
+ setText('final_title',t.final_title);setText('final_sub',t.final_sub);setText('final_cta',t.final_cta);
+ setText('form_title',t.form_title);setText('form_note',t.form_note);
+ setText('l_company',t.labels.company);setText('l_name',t.labels.name);setText('l_email',t.labels.email);
+ setText('l_industry',t.labels.industry);setText('l_scale',t.labels.scale);setText('l_region',t.labels.region);setText('l_need',t.labels.need);
+ setText('submitBtn',t.submit);
+ $('after').innerHTML=t.after.map(([n,h,p])=>`<article><div class="n">${n}</div><h3>${h}</h3><p>${p}</p></article>`).join('');
+}
+document.getElementById('langs').addEventListener('click',e=>{const b=e.target.closest('button[data-lang]');if(!b)return;lang=b.dataset.lang;document.querySelectorAll('#langs button').forEach(x=>x.classList.toggle('active',x===b));render();});
+document.getElementById('svcNav').addEventListener('click',e=>{const b=e.target.closest('button[data-go]');if(!b)return;document.querySelectorAll('#svcNav button').forEach(x=>x.classList.toggle('active',x===b));document.getElementById(b.dataset.go)?.scrollIntoView({behavior:'smooth'});});
+$('year').textContent=new Date().getFullYear();
+$('inquiryForm').addEventListener('submit',async e=>{
+ e.preventDefault();const t=I18N?.[lang]||{err_req:'필수 입력',submitting:'전송중…',ok:'접수됨',err_fail:'실패',err_net:'네트워크 오류',submit:'보내기'};
+ const data=Object.fromEntries(new FormData(e.target).entries());const result=$('result');const btn=$('submitBtn');
+ if(!data.company?.trim()||!data.email?.trim()){result.className='msg err';result.textContent=t.err_req;return;}
+ btn.disabled=true;btn.textContent=t.submitting;result.className='msg';
+ try{const res=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const j=await res.json().catch(()=>({}));
+ if(res.ok&&j.success){result.className='msg ok';result.textContent=j.message||t.ok;e.target.reset();}else{result.className='msg err';result.textContent=j.error||t.err_fail;}
+ }catch{result.className='msg err';result.textContent=t.err_net;}finally{btn.disabled=false;btn.textContent=t.submit;}
+});
+</script>
+<script>window.__BA_SITE__='https://b-a.bambooasia.biz';window.__BA_CONTACT_EMAIL__='info@bambooasia.biz';</script>
+</body></html>
