@@ -24,10 +24,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
+          # package-lock.json 이 있을 때만 캐시 (없으면 캐시 생략)
+          cache: ${{ hashFiles('package-lock.json') != '' && 'npm' || '' }}
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Verify Next.js config (static export)
         run: |
@@ -47,11 +53,10 @@ jobs:
         run: |
           if [ ! -d out ]; then
             echo "FAIL: out/ directory not created"
-            echo "Listing workspace:"
             ls -la
             exit 1
           fi
-          if [ ! -f out/index.html ] && [ ! -f out/index.txt ]; then
+          if [ ! -f out/index.html ]; then
             echo "FAIL: out/index.html missing"
             find out -maxdepth 3 -type f | head -50
             exit 1
