@@ -1,59 +1,117 @@
-# Luna Chat Coder
+# b/a — 베트남 사업 실행 플랫폼
 
-[English README](README.md)
+**Vietnam Business Execution Platform**
 
-**Version 0.1.5**
+법인설립 · 거래·M&A · 산업별 현지화 · 보안·준법 · 현지 운영을 하나의 파트너와 함께 수행하는 실행형 컨설팅 플랫폼입니다.
 
-평소 쓰는 ChatGPT 웹 채팅으로 실제 GitHub 리포지토리 작업을 해보세요. 별도의 로컬 코딩 에이전트를 띄우거나, 터널을 열거나, 내 컴퓨터를 채팅에 연결할 필요가 없습니다.
+시장조사부터 사업 실행과 운영관리까지 복잡한 절차를 체계적으로 연결해, 빠르고 안전한 베트남 사업 진입을 지원합니다.
 
-ChatGPT에는 이미 코드를 실행할 수 있는 샌드박스가 있습니다. 다만 네트워크 접근이 제한될 수 있어서 소스를 가져오고, 의존성을 준비하고, 큰 변경을 안정적으로 게시하는 단계에서 작업이 쉽게 막힙니다. Luna는 이 내장 샌드박스에서 개발 작업을 이어가고, 부족한 부분만 연결된 GitHub를 통해 보완하도록 모델에게 알려줍니다.
+---
 
-## 무엇이 좋아지나요?
+## 프로젝트 개요
 
-- **내장 샌드박스를 제대로 활용합니다.** 편집, 빌드, 테스트, 디버깅은 가능한 한 채팅 안의 샌드박스에서 이어갑니다.
-- **환경 문제에 덜 막힙니다.** 평소 경로로 어떤 단계를 안정적으로 끝낼 수 없을 때는 필요한 부분만 GitHub를 이용해 처리하고, 전체 작업을 다른 환경으로 옮기지 않습니다.
-- **중간에 끊겨도 다시 이어가기 쉽습니다.** Chat이나 sandbox가 사라져도 대화 내용을 바탕으로 코드를 다시 만드는 대신 정확한 GitHub 상태에서 복구합니다.
-- **작업 인계를 더 확실하게 합니다.** 저장소 파일을 유의미한 분량으로 작성·수정한 뒤에는 채팅이 직접 파일 다운로드를 지원할 경우 전체 sandbox workspace snapshot을 제공할 수 있고, 실제로 게시된 상태도 확인한 뒤 완료를 보고합니다.
+| 항목 | 내용 |
+|------|------|
+| **서비스명** | b/a (b-a.asia) |
+| **포지션** | Vietnam Business Execution Platform |
+| **기술 스택** | Next.js 14 (Static Export) + Tailwind CSS + TypeScript |
+| **배포 환경** | Cloudflare Pages + Pages Functions |
+| **지원 언어** | 한국어 · English · Tiếng Việt · 日本語 |
+| **라이선스** | MIT |
 
-목표는 단순합니다. 새 인프라를 운영하는 대신, 채팅에 리포지토리와 개발 작업만 알려주는 것입니다.
+---
 
-## 빠른 시작
+## 주요 기능
 
-이 리포지토리가 문서화하는 ChatGPT Web 환경에서는 다음과 같이 설정합니다.
+- **멀티 언어 UI** — KR / EN / VI / JP 실시간 전환
+- **서비스 섹션** — 법인설립, 거래·M&A, 산업별 현지화, 보안·준법, 운영지원, 절차 안내
+- **산업별 포커스** — 제조, 농업·식품, 물류, 관광·서비스, 유통, 친환경 제조 등
+- **문의 폼** — Cloudflare Pages Functions 기반 `/api/contact` 엔드포인트로 실제 접수
+- **반응형 디자인** — 모바일·데스크톱 최적화
 
-1. **Use this template → Create a new repository**를 선택합니다.
-2. ChatGPT의 <https://chatgpt.com/plugins>에서 **GitHub Plugin**을 설치하고 연결합니다.
-3. GitHub에서 <https://github.com/apps/chatgpt-codex-connector>의 **ChatGPT Codex Connector**를 설치하고 새 리포지토리에 접근 권한을 부여합니다. 이미 일부 리포지토리만 허용하도록 설치했다면 새 리포지토리를 그 목록에 추가합니다.
-4. 일반 ChatGPT 대화에서 리포지토리 URL과 원하는 개발 작업을 보냅니다. 예를 들어 변경을 구현하고 pull request를 열어 달라고 요청할 수 있습니다.
+---
 
-평소 사용법은 여기까지입니다. 이 template으로 만든 리포지토리에는 Luna가 이미 들어 있고, Luna 이름을 따로 언급하거나 내부 우회 절차를 직접 운영할 필요가 없어야 합니다.
+## 로컬 개발
 
-Organization 정책에 따라 Plugin이나 GitHub App 사용에 관리자 승인이 필요할 수 있습니다.
+```bash
+# 의존성 설치
+npm install
 
-## 어떻게 동작하나요?
+# 개발 서버
+npm run dev
+# → http://localhost:3000
 
-Luna는 리포지토리 자체의 지침과 요구사항을 읽고, 작업해야 할 정확한 소스를 복구한 뒤, 평소 편집과 테스트는 chat sandbox에서 진행합니다.
-
-샌드박스의 직접 접근만으로 부족한 단계는 먼저 연결된 GitHub 경로를 이용합니다. 그 경로로도 해당 단계를 안정적으로 끝내기 어렵다면 제한된 GitHub Actions 실행으로 처리한 뒤, 가능하면 다시 샌드박스에서 작업을 이어갑니다. GitHub Actions는 기본 개발환경으로 사용하지 않습니다.
-
-## 기존 리포지토리에 추가
-
-다음 skill directory 전체를 복사합니다.
-
-```text
-.agents/skills/luna-chat-coder/
+# 프로덕션 빌드 (Cloudflare Pages용 static export)
+npm run build
+# → out/ 폴더 생성
 ```
 
-그 다음 [`AGENTS.md`](AGENTS.md)의 짧은 Luna entry-point instruction을 대상 리포지토리의 기존 agent instruction에 합칩니다. 프로젝트 자체의 engineering guidance는 그대로 두십시오. Luna는 그것을 대체하지 않고 주변에서 작업을 이어가기 쉽게 돕습니다.
+### 필수 환경
 
-이 리포지토리가 문서화하는 ChatGPT Web 환경에서는 작업을 요청하기 전에 GitHub Plugin을 연결하고 ChatGPT Codex Connector에 해당 리포지토리 접근 권한을 부여합니다.
+- Node.js 18 이상
+- npm 또는 yarn
 
-## 문서
+---
 
-일반 작업에서 쓰는 동작은 [`SKILL.md`](.agents/skills/luna-chat-coder/SKILL.md)에 정의되어 있습니다. 필요할 때 사용하는 세부 절차는 [`actions-missions.md`](.agents/skills/luna-chat-coder/references/actions-missions.md)와 [`recovery.md`](.agents/skills/luna-chat-coder/references/recovery.md)에 있습니다. [`design-rationale.md`](.agents/skills/luna-chat-coder/references/design-rationale.md)는 Luna 자체를 변경할 때 참고하는 maintainer memory이며, 일반 skill 동작은 이 문서를 읽지 않아도 완결됩니다.
+## Cloudflare Pages 배포
 
-Luna는 Agent Skills 구조를 따릅니다. 이 리포지토리가 문서화하고 검증하는 환경은 ChatGPT Web이며, 다른 host도 동등한 sandbox와 GitHub 기능을 실제로 제공한다면 같은 skill을 사용할 수 있습니다.
+자세한 가이드는 [README_CLOUDFLARE.md](README_CLOUDFLARE.md)를 참고하세요.
+
+### 빠른 배포 (GitHub 연결)
+
+1. 이 리포지토리를 Cloudflare Dashboard > Workers & Pages > Create > Pages > Connect to Git
+2. 설정값:
+   - **Framework preset**: Next.js (Static HTML Export)
+   - **Build command**: `npm run build`
+   - **Build output directory**: `out`
+   - **Node version**: 18 이상
+3. Deploy → `https://<project>.pages.dev` 로 라이브
+4. Custom Domain에 `b-a.asia` 연결 (무료 SSL 자동 발급)
+
+### Pages Functions (문의 폼)
+
+- `functions/api/contact.ts` 가 `/api/contact` 엔드포인트로 자동 배포됩니다.
+- 환경 변수 (Pages > Settings > Variables):
+  - `CONTACT_EMAIL` — 문의 수신 이메일
+  - `RESEND_API_KEY` — (선택) Resend.com API Key (무료 100통/일)
+
+---
+
+## 프로젝트 구조
+
+```
+b-a/
+├── app/
+│   ├── page.tsx          # 메인 랜딩 페이지 (멀티언어 + 문의 폼)
+│   ├── layout.tsx        # 메타데이터 · 루트 레이아웃
+│   └── globals.css       # Tailwind + 글로벌 스타일
+├── functions/
+│   └── api/
+│       └── contact.ts    # Cloudflare Pages Function (문의 접수)
+├── next.config.js        # output: 'export' (정적 사이트)
+├── wrangler.toml         # Cloudflare Pages 설정
+├── tailwind.config.js
+├── package.json
+├── README.md
+├── README.ko.md
+└── README_CLOUDFLARE.md
+```
+
+> **참고**  
+> `.agents/skills/luna-chat-coder` 및 관련 AGENTS.md는 **프로젝트 코드에 포함되지 않습니다**.  
+> 해당 스킬은 에이전트 보조 개발 수단으로만 사용되며, 이 리포지토리의 배포·런타임 코드와는 무관합니다.
+
+---
+
+## 문의 폼 동작
+
+1. 사용자가 문의 섹션에서 회사명, 담당자, 이메일, 업종, 투자규모, 지역, 요청 내용을 입력
+2. 제출 시 `POST /api/contact` 로 JSON 전송
+3. Pages Function이 검증 후 로그 기록 (및 설정된 경우 Resend로 이메일 발송)
+4. 성공/실패 응답을 UI에 표시
+
+---
 
 ## 라이선스
 
-MIT. [`LICENSE`](LICENSE)를 참고하십시오.
+MIT License. [LICENSE](LICENSE) 파일을 참고하세요.
