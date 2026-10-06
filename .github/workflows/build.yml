@@ -1,5 +1,4 @@
-# b/a — 정적 빌드 검증 (Cloudflare와 분리)
-# wrangler 미사용. out/ 생성만 확인.
+# b/a — 정적 빌드 검증 (OpenNext / wrangler deploy 사용 안 함)
 
 name: Build (static export)
 
@@ -17,59 +16,35 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Install dependencies
+      - name: Install
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
 
-      - name: Verify Next.js config (static export)
+      - name: Assert static export config
         run: |
           node -e "
             const c = require('./next.config.js');
-            if (c.output !== 'export') {
-              console.error('FAIL: next.config.js output must be \"export\", got:', c.output);
-              process.exit(1);
-            }
+            if (c.output !== 'export') process.exit(1);
             console.log('OK: output=export');
           "
 
-      - name: Build (next build)
+      - name: Build
         run: npm run build
 
-      - name: Assert out/ exists and has index
+      - name: Assert out/
         run: |
-          if [ ! -d out ]; then
-            echo "FAIL: out/ directory not created"
-            ls -la
-            exit 1
-          fi
-          if [ ! -f out/index.html ]; then
-            echo "FAIL: out/index.html missing"
-            find out -maxdepth 3 -type f | head -50
-            exit 1
-          fi
-          echo "OK: out/ build artifacts"
-          find out -maxdepth 2 -type f | head -40
+          test -f out/index.html
+          test -f functions/api/contact.ts
+          find out -maxdepth 2 -type f | head -30
           du -sh out
 
-      - name: Assert Pages Function present
-        run: |
-          test -f functions/api/contact.ts
-          echo "OK: functions/api/contact.ts"
-
-      - name: Upload out/ artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: static-out
           path: out

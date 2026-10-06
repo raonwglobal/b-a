@@ -1,0 +1,70 @@
+# b/a — Cloudflare Pages 배포 (OpenNext / Workers auto-config 우회)
+#
+# 근본 원인:
+#   Cloudflare(Wrangler auto-config)가 Next.js 감지 시
+#   `bunx opennextjs-cloudflare build` 를 실행함.
+#   이 저장소는 next.config `output: 'export'` 정적 사이트 + functions/ 이라
+#   OpenNext 경로와 호환되지 않음 (Next 14 support-policy 오류 등).
+#
+# 해결:
+#   GitHub Actions 에서 `npm run build` → `wrangler pages deploy out`
+#   Cloudflare Git 자동 빌드는 비활성화 권장.
+#
+# Secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
+# Optional: CLOUDFLARE_PAGES_PROJECT (기본값 b-a)
+
+name: Deploy Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: build + pages deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check secrets
+        id: check
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$ACCOUNT" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::Secrets 미설정 — 배포 스킵. CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID 필요."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+      - name: Build
+        if: steps.check.outputs.skip != 'true'
+        run: npm run build
+
+      - name: Verify
+        if: steps.check.outputs.skip != 'true'
+        run: test -f out/index.html && test -f functions/api/contact.ts
+
+      - name: Deploy Pages
+        if: steps.check.outputs.skip != 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT_NAME: ${{ secrets.CLOUDFLARE_PAGES_PROJECT }}
+        run: |
+          PROJECT="${PROJECT_NAME:-b-a}"
+          npx --yes wrangler@4 pages deploy out --project-name="$PROJECT"

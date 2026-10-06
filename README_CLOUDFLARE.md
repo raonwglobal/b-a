@@ -1,81 +1,48 @@
-# b/a — Cloudflare Pages 배포 (정적 Next.js)
+# b/a — Cloudflare 배포 (근본 원인과 해결)
 
-## 이 프로젝트가 아닌 것
+## 근본 원인
 
-| Cloudflare가 쓰는 명령 | 이 프로젝트 |
-|------------------------|-------------|
-| `bunx opennextjs-cloudflare build` | **사용 안 함** |
-| `wrangler deploy` | **사용 안 함** |
-| 산출물 `.next` / Worker SSR | 산출물 **`out/`** + **Pages Functions** |
-
-GitHub Actions는 `npm run build` → `out/` 까지 **통과**했습니다.  
-아래 오류는 **대시보드 빌드 명령이 잘못**된 것입니다.
-
-```
-Running custom build `bunx opennextjs-cloudflare build` failed
-```
-
----
-
-## 대시보드에서 고치는 방법 (필수)
-
-1. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages**
-2. **Pages** 프로젝트 선택 (Workers 아님)
-3. **Settings** → **Builds & deployments** → **Build configurations** → **Edit**
-
-### 넣을 값
-
-| 항목 | 값 |
-|------|-----|
-| Framework preset | **None** (또는 Next.js Static HTML Export) |
-| **Build command** | `npm run build` |
-| **Build output directory** | `out` |
-| Root directory | `/` (비움) |
-| **Deploy command** | **비움** |
-| Environment variables (build) | 비움 가능 |
-| Node.js version | `20` |
-
-### 지우거나 바꾸면 안 되는 것
-
-- `bunx opennextjs-cloudflare build` ← **삭제**
-- `npx @cloudflare/next-on-pages` ← **삭제**
-- `wrangler deploy` ← **삭제**
-- Output directory 가 `.next` 인 경우 → **`out`으로 변경**
-
-4. **Save** 후 **Deployments** → **Retry deployment** (또는 새 배포)
-
----
-
-## 왜 OpenNext가 뜨는가
-
-Framework preset 을 **Next.js** (SSR) 로 두면 Cloudflare가 자동으로:
+Cloudflare / Wrangler **auto-config** 가 `package.json` 의 Next.js 를 보면 강제로:
 
 ```bash
 bunx opennextjs-cloudflare build
 ```
 
-을 넣습니다. 이 프로젝트는 `next.config.js` 에 `output: 'export'` 만 있는 **순수 정적 사이트**라 OpenNext와 맞지 않습니다.
+를 실행합니다. (로그: `OpenNext — Cloudflare build`, `runAutoConfig`)
 
-Preset 을 **None** 으로 두고 명령을 수동으로 `npm run build` / `out` 으로 고정하세요.
+| OpenNext 경로 | 이 프로젝트 (실제) |
+|---------------|-------------------|
+| SSR / Workers 번들 | `output: 'export'` **정적 HTML** |
+| 산출물 `.next` 기반 | 산출물 **`out/`** |
+| Next 지원 정책 검사 (14.x 거부) | GitHub Actions 에서 `next build` **성공** |
+| `wrangler deploy` | **`wrangler pages deploy out`** |
 
----
+대시보드 Framework 만 바꿔도 auto-config 가 다시 OpenNext 를 호출하면 동일 오류가 반복됩니다.
 
-## 로컬·CI와 동일한 명령
+## 해결 (권장)
+
+**빌드·배포 = GitHub Actions / Cloudflare Git 자동 빌드 = 끄기**
+
+1. Cloudflare → Pages 프로젝트 → **Settings → Builds**
+   - Git 자동 배포 **Disable** 또는 OpenNext/`wrangler deploy` 빌드 구성 제거
+2. GitHub → **Settings → Secrets and variables → Actions**:
+   - `CLOUDFLARE_API_TOKEN` — Account → Cloudflare Pages → Edit
+   - `CLOUDFLARE_ACCOUNT_ID`
+   - (선택) `CLOUDFLARE_PAGES_PROJECT` (기본 `b-a`)
+3. `main` 푸시 → 워크플로 **Deploy Cloudflare Pages**:
+   - `npm run build` → `out/`
+   - `wrangler pages deploy out` (OpenNext 없음)
+
+파일: `.github/workflows/deploy-pages.yml`
+
+## 로컬 배포
 
 ```bash
-npm install
-npm run build
-# → out/index.html 생성
+npm install && npm run build
+npx wrangler@4 pages deploy out --project-name=b-a
 ```
 
-문의 API: `functions/api/contact.ts` (Pages Functions, 빌드 명령과 무관하게 폴더만 있으면 됨)
+## Google Sheets
 
----
-
-## Google Sheets 문의 저장
-
-Pages → Settings → **Variables**:
-
-- `GOOGLE_SHEETS_WEBHOOK_URL` = Apps Script 웹 앱 URL
-
+Variables: `GOOGLE_SHEETS_WEBHOOK_URL`  
 스크립트: `scripts/google-sheets-apps-script.gs`
