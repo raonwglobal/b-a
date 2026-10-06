@@ -2,13 +2,9 @@
   "name": "b-a-execution-platform",
   "version": "1.0.0",
   "private": true,
-  "description": "b/a Vietnam Business Execution Platform — Cloudflare Pages static site (no OpenNext, no Workers SSR)",
+  "description": "b/a Vietnam Business Execution Platform — static HTML on Cloudflare Pages",
   "scripts": {
-    "build": "node scripts/cf-safe-build.mjs",
-    "build:next": "npx --yes next@14.2.35 build",
-    "dev": "npx --yes next@14.2.35 dev",
-    "pages:build": "node scripts/cf-safe-build.mjs",
-    "cf:build": "node scripts/cf-safe-build.mjs"
+    "build": "node scripts/cf-safe-build.mjs"
   },
   "engines": {
     "node": ">=18"

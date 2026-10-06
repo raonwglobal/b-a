@@ -1,0 +1,5 @@
+# Cloudflare Pages static site ONLY
+# Do NOT add: main, .open-next, opennext, workers SSR
+name = "b-a"
+compatibility_date = "2024-11-01"
+pages_build_output_dir = "out"
