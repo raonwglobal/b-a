@@ -1,0 +1,73 @@
+# b/a — 정적 빌드 검증 (Cloudflare와 분리)
+# wrangler deploy 는 사용하지 않음. out/ 생성만 확인.
+
+name: Build (static export)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: next build → out/
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Verify Next.js config (static export)
+        run: |
+          node -e "
+            const c = require('./next.config.js');
+            if (c.output !== 'export') {
+              console.error('FAIL: next.config.js output must be \"export\", got:', c.output);
+              process.exit(1);
+            }
+            console.log('OK: output=export');
+          "
+
+      - name: Build (next build)
+        run: npm run build
+
+      - name: Assert out/ exists and has index
+        run: |
+          if [ ! -d out ]; then
+            echo "FAIL: out/ directory not created"
+            echo "Listing workspace:"
+            ls -la
+            exit 1
+          fi
+          if [ ! -f out/index.html ] && [ ! -f out/index.txt ]; then
+            echo "FAIL: out/index.html missing"
+            find out -maxdepth 3 -type f | head -50
+            exit 1
+          fi
+          echo "OK: out/ build artifacts"
+          find out -maxdepth 2 -type f | head -40
+          du -sh out
+
+      - name: Assert Pages Function present
+        run: |
+          test -f functions/api/contact.ts
+          echo "OK: functions/api/contact.ts"
+
+      - name: Upload out/ artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-out
+          path: out
+          retention-days: 7
