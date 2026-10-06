@@ -1,59 +1,119 @@
 #!/usr/bin/env node
 /**
- * Build out/ from scripts/full-page.html + scripts/i18n.js
- * KR / EN / VI / JP full page content
- * Contact: info@bambooasia.biz (real — never "예시")
+ * Restore original UI by mirroring https://www.bambooasia.biz into out/
+ * - Keeps the full Next.js static design (dark hero, sections, cards)
+ * - Contact: info@bambooasia.biz (never "예시")
+ * - Form submit also POSTs /api/contact
  */
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, copyFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 
 const root = process.cwd();
 const outDir = join(root, 'out');
-const srcPage = join(root, 'scripts', 'full-page.html');
-const srcI18n = join(root, 'scripts', 'i18n.js');
+const SRC = (process.env.BA_MIRROR_URL || 'https://www.bambooasia.biz').replace(/\/$/, '');
 
-console.log('[cf-safe-build] Building multi-language site (KR/EN/VI/JP)');
+console.log('[cf-safe-build] Restoring original UI from', SRC);
 
-if (!existsSync(srcPage) || !existsSync(srcI18n)) {
-  console.error('[cf-safe-build] FATAL: scripts/full-page.html or scripts/i18n.js missing');
+function ensureDir(p) {
+  mkdirSync(p, { recursive: true });
+}
+
+async function fetchText(url) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'b-a-build/1.0' },
+    redirect: 'follow',
+  });
+  if (!res.ok) throw new Error(`Fetch failed ${res.status} ${url}`);
+  return await res.text();
+}
+
+async function fetchBuffer(url) {
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'b-a-build/1.0' },
+    redirect: 'follow',
+  });
+  if (!res.ok) throw new Error(`Fetch failed ${res.status} ${url}`);
+  return Buffer.from(await res.arrayBuffer());
+}
+
+function writeOut(rel, content) {
+  const p = join(outDir, rel);
+  ensureDir(dirname(p));
+  if (typeof content === 'string') writeFileSync(p, content, 'utf8');
+  else writeFileSync(p, content);
+  console.log('[cf-safe-build] wrote', rel);
+}
+
+function extractAssetPaths(html) {
+  const paths = new Set();
+  const re = /(?:href|src)=["'](\/_next\/static\/[^"']+)["']/g;
+  let m;
+  while ((m = re.exec(html))) paths.add(m[1]);
+  return [...paths];
+}
+
+function scrubContact(text) {
+  return text
+    .replaceAll('info@bambooasia.biz (예시)', 'info@bambooasia.biz')
+    .replaceAll('info@bambooasia.biz(예시)', 'info@bambooasia.biz')
+    .replaceAll('contact@b-a.asia', 'info@bambooasia.biz')
+    .replaceAll('noreply@b-a.asia', 'noreply@bambooasia.biz');
+}
+
+async function main() {
+  if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
+  ensureDir(outDir);
+
+  let html = await fetchText(SRC + '/');
+  html = scrubContact(html);
+
+  const assets = extractAssetPaths(html);
+  console.log('[cf-safe-build] assets', assets.length);
+
+  for (const path of assets) {
+    const url = SRC + path;
+    const buf = await fetchBuffer(url);
+    let body = buf;
+
+    if (path.includes('/app/page-') && path.endsWith('.js')) {
+      let js = scrubContact(buf.toString('utf8'));
+
+      // wire real API while keeping original modal UX
+      if (js.includes('onClick:()=>c(!0)')) {
+        js = js.replace(
+          'onClick:()=>c(!0)',
+          'onClick:()=>{c(!0);try{fetch("/api/contact",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)})}catch(e){}}'
+        );
+      }
+
+      // remove example label on contact email (source UI)
+      js = js.replaceAll('info@bambooasia.biz (예시)', 'info@bambooasia.biz');
+
+      body = Buffer.from(js, 'utf8');
+    }
+
+    writeOut(path.replace(/^\//, ''), body);
+  }
+
+  if (!html.includes('__BA_SITE__')) {
+    html = html.replace(
+      '</body>',
+      `<script>window.__BA_SITE__='https://b-a.bambooasia.biz';window.__BA_CONTACT_EMAIL__='info@bambooasia.biz';</script></body>`
+    );
+  }
+
+  writeOut('index.html', html);
+
+  if (!existsSync(join(outDir, 'index.html'))) {
+    console.error('[cf-safe-build] FATAL: out/index.html missing');
+    process.exit(1);
+  }
+
+  console.log('[cf-safe-build] OK — original UI restored from', SRC);
+  console.log('[cf-safe-build] contact: info@bambooasia.biz (no 예시)');
+}
+
+main().catch((e) => {
+  console.error('[cf-safe-build] FAILED', e);
   process.exit(1);
-}
-
-let html = readFileSync(srcPage, 'utf8');
-let i18n = readFileSync(srcI18n, 'utf8');
-
-html = html
-  .replaceAll('info@bambooasia.biz (예시)', 'info@bambooasia.biz')
-  .replaceAll('info@bambooasia.biz(예시)', 'info@bambooasia.biz');
-i18n = i18n
-  .replaceAll('info@bambooasia.biz (예시)', 'info@bambooasia.biz')
-  .replaceAll('info@bambooasia.biz(예시)', 'info@bambooasia.biz');
-
-if (i18n.includes('(예시)') && i18n.includes('info@bambooasia.biz')) {
-  // only fail if still attached to email pattern
-  if (/info@bambooasia\.biz\s*\(예시\)/.test(i18n)) {
-    console.error('[cf-safe-build] FATAL: example marker on contact email');
-    process.exit(1);
-  }
-}
-
-for (const needle of [
-  'Your Entire Vietnam Entry',
-  'ベトナム進出',
-  'Toàn bộ hành trình',
-  '베트남 진출의 모든 과정',
-]) {
-  if (!i18n.includes(needle)) {
-    console.error('[cf-safe-build] FATAL: missing language content:', needle);
-    process.exit(1);
-  }
-}
-
-if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
-mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, 'index.html'), html, 'utf8');
-writeFileSync(join(outDir, 'i18n.js'), i18n, 'utf8');
-
-console.log('[cf-safe-build] OK out/index.html + out/i18n.js');
-console.log('[cf-safe-build] Languages: KR EN VI JP · contact: info@bambooasia.biz');
-process.exit(0);
+});
