@@ -2,14 +2,16 @@
   "name": "b-a-execution-platform",
   "version": "1.0.0",
   "private": true,
-  "description": "b/a Vietnam Business Execution Platform — static Next.js for Cloudflare Pages (not OpenNext/Workers SSR)",
+  "description": "b/a static Next.js for Cloudflare Pages only. Not OpenNext / Workers SSR.",
   "scripts": {
+    "prebuild": "node scripts/guard-no-opennext.mjs",
     "dev": "next dev",
     "build": "next build",
     "pages:build": "next build",
     "cf:build": "bash scripts/cf-pages-build.sh",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "node -e \"console.error('Use: npx wrangler@4 pages deploy out — never wrangler deploy or OpenNext'); process.exit(1)\""
   },
   "dependencies": {
     "next": "14.2.35",
