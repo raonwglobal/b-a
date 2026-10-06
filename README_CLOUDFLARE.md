@@ -1,64 +1,81 @@
-# b/a — Cloudflare Pages 배포
+# b/a — Cloudflare Pages 배포 (정적 Next.js)
 
-## GitHub Actions 빌드 테스트 (우선)
+## 이 프로젝트가 아닌 것
 
-리포에 **Build (static export)** 워크플로가 있습니다.
+| Cloudflare가 쓰는 명령 | 이 프로젝트 |
+|------------------------|-------------|
+| `bunx opennextjs-cloudflare build` | **사용 안 함** |
+| `wrangler deploy` | **사용 안 함** |
+| 산출물 `.next` / Worker SSR | 산출물 **`out/`** + **Pages Functions** |
 
-- 경로: `.github/workflows/build.yml`
-- 동작: `npm run build` → `out/` 생성 여부만 검증 (**wrangler 사용 안 함**)
-- 확인: GitHub → **Actions** 탭 → 최신 실행 결과
+GitHub Actions는 `npm run build` → `out/` 까지 **통과**했습니다.  
+아래 오류는 **대시보드 빌드 명령이 잘못**된 것입니다.
 
-로컬에서 동일 검증:
+```
+Running custom build `bunx opennextjs-cloudflare build` failed
+```
+
+---
+
+## 대시보드에서 고치는 방법 (필수)
+
+1. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages**
+2. **Pages** 프로젝트 선택 (Workers 아님)
+3. **Settings** → **Builds & deployments** → **Build configurations** → **Edit**
+
+### 넣을 값
+
+| 항목 | 값 |
+|------|-----|
+| Framework preset | **None** (또는 Next.js Static HTML Export) |
+| **Build command** | `npm run build` |
+| **Build output directory** | `out` |
+| Root directory | `/` (비움) |
+| **Deploy command** | **비움** |
+| Environment variables (build) | 비움 가능 |
+| Node.js version | `20` |
+
+### 지우거나 바꾸면 안 되는 것
+
+- `bunx opennextjs-cloudflare build` ← **삭제**
+- `npx @cloudflare/next-on-pages` ← **삭제**
+- `wrangler deploy` ← **삭제**
+- Output directory 가 `.next` 인 경우 → **`out`으로 변경**
+
+4. **Save** 후 **Deployments** → **Retry deployment** (또는 새 배포)
+
+---
+
+## 왜 OpenNext가 뜨는가
+
+Framework preset 을 **Next.js** (SSR) 로 두면 Cloudflare가 자동으로:
+
+```bash
+bunx opennextjs-cloudflare build
+```
+
+을 넣습니다. 이 프로젝트는 `next.config.js` 에 `output: 'export'` 만 있는 **순수 정적 사이트**라 OpenNext와 맞지 않습니다.
+
+Preset 을 **None** 으로 두고 명령을 수동으로 `npm run build` / `out` 으로 고정하세요.
+
+---
+
+## 로컬·CI와 동일한 명령
 
 ```bash
 npm install
 npm run build
-ls out/index.html   # 있어야 함
+# → out/index.html 생성
 ```
 
-이 빌드가 성공하면 **앱 코드/Next 설정은 정상**입니다.  
-Cloudflare 오류는 **배포 설정(wrangler deploy)** 문제일 가능성이 큽니다.
+문의 API: `functions/api/contact.ts` (Pages Functions, 빌드 명령과 무관하게 폴더만 있으면 됨)
 
 ---
 
-## Cloudflare 반복 오류의 근본 원인
+## Google Sheets 문의 저장
 
-로그에 이런 메시지가 있으면:
+Pages → Settings → **Variables**:
 
-```
-wrangler deploy on a Pages project
-Missing entry-point to Worker script
-```
+- `GOOGLE_SHEETS_WEBHOOK_URL` = Apps Script 웹 앱 URL
 
-**Build/Deploy 명령에 `wrangler deploy`가 들어가 있거나**,  
-플랫폼이 Workers 경로로 실행 중인 상태입니다.
-
-이 프로젝트는:
-
-| 올바른 것 | 잘못된 것 |
-|-----------|----------|
-| `npm run build` | `wrangler deploy` |
-| 산출물 `out/` | 산출물 `.next` |
-| **Pages** | **Workers** |
-| `functions/` API | Worker `main` entry |
-
-### 대시보드 필수 값
-
-**Pages** 프로젝트 → Settings → Builds & deployments
-
-| 항목 | 값 |
-|------|-----|
-| Framework preset | **None** 또는 Next.js (Static HTML Export) |
-| **Build command** | `npm run build` |
-| **Build output directory** | `out` |
-| **Deploy command** | **완전 비움** |
-| Node | 18 또는 20 |
-
-`wrangler.toml` 은 리포에서 제거했습니다. (있으면 CF가 `wrangler deploy`를 시도하는 경우가 있음)
-
----
-
-## 문의 → Google Sheets
-
-Variables: `GOOGLE_SHEETS_WEBHOOK_URL`  
 스크립트: `scripts/google-sheets-apps-script.gs`
