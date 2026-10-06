@@ -1,5 +1,5 @@
 # b/a — 정적 빌드 검증 (Cloudflare와 분리)
-# wrangler deploy 는 사용하지 않음. out/ 생성만 확인.
+# wrangler 미사용. out/ 생성만 확인.
 
 name: Build (static export)
 
@@ -24,8 +24,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          # package-lock.json 이 있을 때만 캐시 (없으면 캐시 생략)
-          cache: ${{ hashFiles('package-lock.json') != '' && 'npm' || '' }}
 
       - name: Install dependencies
         run: |
