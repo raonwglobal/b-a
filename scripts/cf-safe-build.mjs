@@ -2,19 +2,11 @@
 /**
  * b-a static build
  *
- * IMPORTANT:
- * Do NOT mirror https://www.bambooasia.biz by default.
- * That domain changed to "Bamboo Circular Materials" and is no longer
- * the Vietnam Business Execution Platform UI.
- *
  * Homepage source of truth:
- *   scripts/full-page.html  →  out/index.html
+ *   scripts/full-page.html + scripts/i18n.js  →  out/index.html + out/i18n.js
  *
- * Optional digital card:
- *   scripts/digital-card.html (or .gz.b64 / partN.b64)  →  out/card/index.html
- *
- * Emergency only (will pull wrong product site):
- *   BA_MIRROR_URL=https://... npm run build
+ * Do NOT mirror www.bambooasia.biz by default (product site changed).
+ * Optional digital card: scripts/digital-card.html → out/card/index.html
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -23,9 +15,10 @@ import { gunzipSync } from 'node:zlib';
 const root = process.cwd();
 const outDir = join(root, 'out');
 const FULL = join(root, 'scripts', 'full-page.html');
-const MIRROR = process.env.BA_MIRROR_URL; // optional, not default
+const I18N = join(root, 'scripts', 'i18n.js');
+const MIRROR = process.env.BA_MIRROR_URL;
 
-console.log('[cf-safe-build] restoring consulting UI from scripts/full-page.html');
+console.log('[cf-safe-build] consulting UI from scripts/full-page.html + i18n.js');
 
 function ensureDir(p) {
   mkdirSync(p, { recursive: true });
@@ -34,10 +27,8 @@ function ensureDir(p) {
 function writeOut(rel, content) {
   const p = join(outDir, rel);
   ensureDir(dirname(p));
-  writeFileSync(p, typeof content === 'string' ? content : content, {
-    encoding: typeof content === 'string' ? 'utf8' : undefined,
-  });
-  console.log('[cf-safe-build] wrote', rel, typeof content === 'string' ? `(${content.length}b)` : '');
+  writeFileSync(p, content, typeof content === 'string' ? 'utf8' : undefined);
+  console.log('[cf-safe-build] wrote', rel, typeof content === 'string' ? `(${Buffer.byteLength(content)}b)` : '');
 }
 
 function scrub(text) {
@@ -70,46 +61,60 @@ function loadDigitalCard() {
   return null;
 }
 
-async function mirrorExternal(url) {
-  console.warn('[cf-safe-build] WARNING: BA_MIRROR_URL is set — live mirror may not be the consulting site');
-  const res = await fetch(url.replace(/\/$/, '') + '/', {
-    headers: { 'User-Agent': 'b-a-build/1.0' },
-    redirect: 'follow',
-  });
-  if (!res.ok) throw new Error(`Mirror fetch failed ${res.status}`);
-  return scrub(await res.text());
-}
-
 async function main() {
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   ensureDir(outDir);
 
-  let html;
   if (MIRROR) {
-    html = await mirrorExternal(MIRROR);
+    console.warn('[cf-safe-build] WARNING: BA_MIRROR_URL set — may not be consulting site');
+    const res = await fetch(MIRROR.replace(/\/$/, '') + '/', {
+      headers: { 'User-Agent': 'b-a-build/1.0' },
+      redirect: 'follow',
+    });
+    if (!res.ok) throw new Error(`Mirror fetch failed ${res.status}`);
+    writeOut('index.html', scrub(await res.text()));
   } else {
     if (!existsSync(FULL)) {
       console.error('[cf-safe-build] FATAL: scripts/full-page.html missing');
       process.exit(1);
     }
-    html = scrub(readFileSync(FULL, 'utf8'));
-  }
+    if (!existsSync(I18N)) {
+      console.error('[cf-safe-build] FATAL: scripts/i18n.js missing (page would render empty)');
+      process.exit(1);
+    }
 
-  // Ensure site markers
-  if (!html.includes('__BA_SITE__')) {
-    html = html.replace(
-      '</body>',
-      `<script>window.__BA_SITE__='https://b-a.bambooasia.biz';window.__BA_CONTACT_EMAIL__='info@bambooasia.biz';</script></body>`
-    );
-  }
+    let html = scrub(readFileSync(FULL, 'utf8'));
+    const i18nSrc = readFileSync(I18N, 'utf8');
 
-  // Guard: refuse obvious wrong product page unless forced
-  if (!MIRROR && /Circular Materials/i.test(html) && !/Business Execution/i.test(html)) {
-    console.error('[cf-safe-build] FATAL: full-page.html looks like wrong product (Circular Materials)');
-    process.exit(1);
-  }
+    // Always ship standalone i18n.js
+    writeOut('i18n.js', i18nSrc);
 
-  writeOut('index.html', html);
+    // Inline I18N so content renders even if /i18n.js is blocked/cached wrong
+    if (html.includes('<script src="/i18n.js"></script>')) {
+      html = html.replace(
+        '<script src="/i18n.js"></script>',
+        `<script>\n${i18nSrc}\n</script>`
+      );
+      console.log('[cf-safe-build] inlined i18n.js into index.html');
+    } else if (!html.includes('window.I18N') && !html.includes('I18N[')) {
+      // no reference yet — inject before first app script
+      html = html.replace('</head>', `<script>\n${i18nSrc}\n</script></head>`);
+    }
+
+    if (!html.includes('__BA_SITE__')) {
+      html = html.replace(
+        '</body>',
+        `<script>window.__BA_SITE__='https://b-a.bambooasia.biz';window.__BA_CONTACT_EMAIL__='info@bambooasia.biz';</script></body>`
+      );
+    }
+
+    if (/Circular Materials/i.test(html) && !/Business Execution/i.test(html)) {
+      console.error('[cf-safe-build] FATAL: wrong product content');
+      process.exit(1);
+    }
+
+    writeOut('index.html', html);
+  }
 
   const card = loadDigitalCard();
   if (card) {
@@ -123,9 +128,16 @@ async function main() {
     process.exit(1);
   }
 
+  // Sanity: built index must contain I18N data or empty shells will show
+  const built = readFileSync(join(outDir, 'index.html'), 'utf8');
+  if (!MIRROR && !built.includes('window.I18N') && !existsSync(join(outDir, 'i18n.js'))) {
+    console.error('[cf-safe-build] FATAL: I18N not present in build output');
+    process.exit(1);
+  }
+
   console.log('[cf-safe-build] OK');
-  console.log('[cf-safe-build] UI: Vietnam Business Execution Platform (scripts/full-page.html)');
-  console.log('[cf-safe-build] Routes: /  ·  /card/ (if source present)');
+  console.log('[cf-safe-build] UI: Vietnam Business Execution Platform');
+  console.log('[cf-safe-build] Routes: / · /i18n.js · /card/ (if present)');
 }
 
 main().catch((e) => {
