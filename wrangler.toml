@@ -1,6 +1,0 @@
-# Cloudflare Pages (정적 out/ + functions/)
-# 대시보드에서 Framework 를 Next.js SSR 로 두면 .next 를 쓰려 하므로
-# 반드시 Static HTML Export / None + output directory = out 으로 설정할 것.
-name = "b-a"
-compatibility_date = "2024-11-01"
-pages_build_output_dir = "out"
