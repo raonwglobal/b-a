@@ -1,6 +1,5 @@
 node_modules
 .next
-out
 build
 .DS_Store
 .env
@@ -9,3 +8,5 @@ build
 .dev.vars
 .agents/
 AGENTS.md
+.open-next
+.vercel

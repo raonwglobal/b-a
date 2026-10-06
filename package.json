@@ -2,30 +2,13 @@
   "name": "b-a-execution-platform",
   "version": "1.0.0",
   "private": true,
-  "description": "b/a static Next.js for Cloudflare Pages only. Not OpenNext / Workers SSR.",
+  "description": "b/a Vietnam Business Execution Platform — Cloudflare Pages static site (no OpenNext, no Workers SSR)",
   "scripts": {
-    "prebuild": "node scripts/guard-no-opennext.mjs",
-    "dev": "next dev",
-    "build": "next build",
-    "pages:build": "next build",
-    "cf:build": "bash scripts/cf-pages-build.sh",
-    "start": "next start",
-    "lint": "next lint",
-    "deploy": "node -e \"console.error('Use: npx wrangler@4 pages deploy out — never wrangler deploy or OpenNext'); process.exit(1)\""
-  },
-  "dependencies": {
-    "next": "14.2.35",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.4"
+    "build": "node scripts/cf-safe-build.mjs",
+    "build:next": "npx --yes next@14.2.35 build",
+    "dev": "npx --yes next@14.2.35 dev",
+    "pages:build": "node scripts/cf-safe-build.mjs",
+    "cf:build": "node scripts/cf-safe-build.mjs"
   },
   "engines": {
     "node": ">=18"

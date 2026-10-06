@@ -9,22 +9,17 @@ on:
 
 jobs:
   build:
-    name: next build → out/
+    name: cf-safe-build → out/
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Guard no OpenNext
-        run: node scripts/guard-no-opennext.mjs
-      - name: Install
-        run: |
-          if [ -f package-lock.json ]; then npm ci; else npm install; fi
-      - name: Build
+      - name: Build (static verify)
         run: npm run build
-      - name: Assert out/
+      - name: Assert out/ and functions
         run: |
           test -f out/index.html
           test -f functions/api/contact.ts
