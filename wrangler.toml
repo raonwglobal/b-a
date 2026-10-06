@@ -1,5 +1,0 @@
-# Cloudflare Pages ONLY — static out/ + functions/
-# Do NOT use: wrangler deploy, opennextjs-cloudflare, next-on-pages
-name = "b-a"
-compatibility_date = "2024-11-01"
-pages_build_output_dir = "out"
