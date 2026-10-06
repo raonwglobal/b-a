@@ -1,8 +1,0 @@
-# Cloudflare Pages (static) ONLY
-# - pages_build_output_dir => Pages project, not Workers SSR
-# - no main / no .open-next / no OpenNext
-# Deploy: npx wrangler@4 pages deploy out
-# Never: wrangler deploy | opennextjs-cloudflare
-name = "b-a"
-compatibility_date = "2024-11-01"
-pages_build_output_dir = "out"
