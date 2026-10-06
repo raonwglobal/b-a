@@ -1,12 +1,12 @@
 /**
  * Cloudflare Pages Function — /api/contact
- * Runtime: Cloudflare Workers (not Next.js). Types must not rely on PagesFunction global.
+ * Site: https://b-a.bambooasia.biz
+ * Contact default: info@bambooasia.biz
  */
 
 export interface Env {
   CONTACT_EMAIL?: string;
   RESEND_API_KEY?: string;
-  /** Google Apps Script 웹앱 URL (doPost) — 문의 행을 시트에 append */
   GOOGLE_SHEETS_WEBHOOK_URL?: string;
 }
 
@@ -59,7 +59,6 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
       need: row.need.slice(0, 200),
     });
 
-    // 1) Google Sheets (Apps Script 웹훅)
     let sheetsOk = false;
     let sheetsError: string | undefined;
     if (context.env.GOOGLE_SHEETS_WEBHOOK_URL) {
@@ -82,9 +81,8 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
       }
     }
 
-    // 2) Resend 이메일 (선택)
     if (context.env.RESEND_API_KEY) {
-      const to = context.env.CONTACT_EMAIL || 'contact@b-a.asia';
+      const to = context.env.CONTACT_EMAIL || 'info@bambooasia.biz';
       try {
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
@@ -93,11 +91,12 @@ export const onRequestPost = async (context: PagesContext): Promise<Response> =>
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'b/a <noreply@b-a.asia>',
+            from: 'b/a <noreply@bambooasia.biz>',
             to: [to],
             subject: `[b/a 문의] ${row.company} - ${row.industry || '일반'}`,
             html: `
               <h2>b/a 새로운 문의</h2>
+              <p><b>사이트:</b> https://b-a.bambooasia.biz</p>
               <p><b>회사:</b> ${escapeHtml(row.company)}</p>
               <p><b>담당자:</b> ${escapeHtml(row.name || '-')}</p>
               <p><b>이메일:</b> ${escapeHtml(row.email)}</p>

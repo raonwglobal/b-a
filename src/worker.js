@@ -1,6 +1,7 @@
 /**
  * Cloudflare Worker: static assets (out/) + POST /api/contact
- * Used when the pipeline runs `wrangler deploy` (not pages deploy).
+ * Site: https://b-a.bambooasia.biz
+ * Contact default: info@bambooasia.biz
  */
 
 const corsHeaders = {
@@ -70,7 +71,7 @@ async function handleContact(request, env) {
     }
 
     if (env.RESEND_API_KEY) {
-      const to = env.CONTACT_EMAIL || 'contact@b-a.asia';
+      const to = env.CONTACT_EMAIL || 'info@bambooasia.biz';
       try {
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
@@ -79,11 +80,12 @@ async function handleContact(request, env) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: 'b/a <noreply@b-a.asia>',
+            from: 'b/a <noreply@bambooasia.biz>',
             to: [to],
             subject: `[b/a 문의] ${row.company} - ${row.industry || '일반'}`,
             html: `
               <h2>b/a 새로운 문의</h2>
+              <p><b>사이트:</b> https://b-a.bambooasia.biz</p>
               <p><b>회사:</b> ${escapeHtml(row.company)}</p>
               <p><b>담당자:</b> ${escapeHtml(row.name || '-')}</p>
               <p><b>이메일:</b> ${escapeHtml(row.email)}</p>
@@ -117,7 +119,6 @@ export default {
     if (url.pathname === '/api/contact' || url.pathname === '/api/contact/') {
       return handleContact(request, env);
     }
-    // Static files from out/
     if (env.ASSETS) {
       return env.ASSETS.fetch(request);
     }
