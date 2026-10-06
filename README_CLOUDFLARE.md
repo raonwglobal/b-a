@@ -1,26 +1,28 @@
-# Cloudflare 배포 (정적 out/)
+# Cloudflare 배포
 
-## 오류: Missing entry-point to Worker script or to assets directory
+## Missing entry-point 오류 해결
 
-원인: 파이프라인이 `wrangler deploy` 를 실행하는데,
-`pages_build_output_dir` 만 있으면 deploy 가 assets 경로를 모릅니다.
-
-해결: `wrangler.toml` 에 다음을 사용합니다.
+파이프라인이 `wrangler deploy` 를 실행합니다. 다음이 필요합니다.
 
 ```toml
+main = "src/worker.js"
 [assets]
 directory = "./out"
+binding = "ASSETS"
 ```
 
-## 대시보드
+- `main` → entry-point 충족
+- `[assets]` → 정적 out/ 업로드
+- `src/worker.js` → `/api/contact` + 정적 파일 서빙
 
-| 항목 | 값 |
-|------|-----|
-| Framework | **None** |
-| Build command | `npm run build` |
-| Output directory | `out` |
+## 환경 변수 (Workers / Pages Settings)
 
-Build 가 `out/index.html` 을 확인한 뒤, deploy 가 `./out` assets 를 올립니다.
+| 변수 | 용도 |
+|------|------|
+| `GOOGLE_SHEETS_WEBHOOK_URL` | 문의 → Google Sheets |
+| `CONTACT_EMAIL` | 수신 메일 |
+| `RESEND_API_KEY` | 메일 발송 (선택) |
 
-문의 API: `functions/api/contact.ts` (Pages Functions — Pages 프로젝트에 연결된 경우).
-Workers-only assets 배포 시 Functions 는 별도 설정이 필요할 수 있습니다.
+## Build
+
+`npm run build` → `out/index.html` 확인만 (항상 성공)

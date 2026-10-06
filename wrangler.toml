@@ -1,9 +1,9 @@
-# Static site for Cloudflare.
-# CF pipelines often run `wrangler deploy` (not pages deploy).
-# pages_build_output_dir is ignored by `wrangler deploy` → Missing entry-point.
-# [assets] is what `wrangler deploy` looks for.
+# Cloudflare deploy via `wrangler deploy` (dashboard pipeline).
+# Requires both: main (entry) + [assets] (static out/).
 name = "b-a"
+main = "src/worker.js"
 compatibility_date = "2024-11-01"
 
 [assets]
 directory = "./out"
+binding = "ASSETS"

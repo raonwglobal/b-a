@@ -2,10 +2,9 @@
   "name": "b-a-execution-platform",
   "version": "1.0.0",
   "private": true,
-  "description": "b/a Vietnam Business Execution Platform — static HTML",
+  "description": "b/a Vietnam Business Execution Platform — static HTML + Worker",
   "scripts": {
-    "build": "node scripts/cf-safe-build.mjs",
-    "deploy": "node scripts/cf-safe-build.mjs && npx --yes wrangler@4 deploy"
+    "build": "node scripts/cf-safe-build.mjs"
   },
   "engines": {
     "node": ">=18"
