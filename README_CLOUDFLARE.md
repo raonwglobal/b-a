@@ -1,107 +1,74 @@
-# b/a - Cloudflare Pages 무료 배포 가이드
+# b/a - Cloudflare Pages 배포 가이드
 
-> ## ⚠️ 빌드 오류 방지 (중요)
->
-> 이 프로젝트는 **Cloudflare Pages** 전용입니다. **Workers** 로 만들면 안 됩니다.
->
-> | 항목 | 올바른 값 |
-> |------|-----------|
-> | 제품 | **Workers & Pages → Create → Pages** (Workers 아님) |
-> | Framework preset | **Next.js (Static HTML Export)** 또는 None |
-> | **Build command** | `npm run build` 만 (wrangler deploy 넣지 말 것) |
-> | **Build output directory** | `out` |
-> | Node version | 18 이상 |
->
-> `Missing entry-point to Worker script` 오류는 `wrangler deploy`(Workers)를 썼을 때 납니다.  
-> Pages는 빌드 후 `out/` 정적 파일 + `functions/` 를 자동으로 붙입니다.
+## ⚠️ 이 오류가 나면
 
-## 왜 Cloudflare Pages 무료인가?
+```
+It looks like you've run a Workers-specific command in a Pages project.
+For Pages, please run `wrangler pages deploy` instead.
+```
 
-- **호스팅 100% 무료**: 트래픽 무제한, 대역폭 무제한
-- **빌드 500회/월 무료**
-- **도메인 100개까지 무료 연결, SSL 무료**
-- **Pages Functions 무료**: 월 100,000 요청까지 무료 (문의 폼 처리용)
+**원인:** Pages 프로젝트에 `wrangler deploy`(Workers용)가 실행됨.
 
-Cloudflare 무료 플랜으로도 b-a.asia 같은 비즈니스 사이트 충분히 운영 가능.
+**해결:** 아래 대시보드 설정만 사용하세요. `wrangler` / `wrangler deploy` 를 빌드·배포 명령에 넣지 마세요.
 
 ---
 
-## 배포 방법 2가지 (택1)
+## 대시보드 설정 (필수)
 
-### 방법 A: GitHub 연결 (추천, 자동 배포)
+Cloudflare → **Workers & Pages** → 해당 **Pages** 프로젝트 → **Settings** → **Builds & deployments**
 
-1. Cloudflare Dashboard > **Workers & Pages** > **Create** > **Pages** > Connect to Git
-2. 리포지토리 `raonwglobal/b-a` 선택
-3. 설정:
-   - Framework preset: **Next.js (Static HTML Export)**
-   - Build command: **`npm run build`**
-   - Build output directory: **`out`**
-   - Node version: **18** 이상
-4. Save and Deploy
+| 항목 | 반드시 이 값 |
+|------|----------------|
+| Production branch | `main` |
+| Framework preset | **Next.js (Static HTML Export)** 또는 **None** |
+| **Build command** | `npm run build` |
+| **Build output directory** | `out` |
+| **Root directory** | `/` (비워도 됨) |
+| **Deploy command** | **비워 두기** (비우지 말고 wrangler 넣지 말 것) |
+| Node.js version | `18` 또는 `20` |
 
-### 방법 B: CLI (로컬)
+### 확인 사항
+
+1. 프로젝트가 **Pages** 인지 (Workers 아님)
+2. Build command에 `wrangler` 단어가 **없음**
+3. Advanced / Deploy command 칸이 **비어 있음**
+4. 저장 후 **Retry deployment**
+
+`functions/` 폴더는 Pages가 자동으로 `/api/*` Function으로 연결합니다. wrangler.toml 은 사용하지 않습니다.
+
+---
+
+## Git 연결 배포 흐름
+
+```
+npm run build   →  out/ 생성
+Pages가 out/ 업로드 + functions/ 연결
+```
+
+---
+
+## 로컬에서만 CLI로 올릴 때
 
 ```bash
 npm install
 npm run build
-npx wrangler pages deploy out
+npx wrangler@4 pages deploy out --project-name=YOUR_PAGES_PROJECT_NAME
 ```
 
-`wrangler deploy` 는 사용하지 마세요.
+`npx wrangler deploy` 는 사용 금지.
 
 ---
 
-## 도메인 연결 (b-a.asia)
+## 문의 → Google Sheets
 
-1. 도메인 구매 후 네임서버를 Cloudflare로 지정
-2. Pages > Custom domains > `b-a.asia`
-3. SSL 자동 발급
-
----
-
-## 문의 폼 저장: Google Sheets (권장)
-
-문의는 Google 스프레드시트에 한 행씩 저장됩니다.
-
-### 1단계 — 스프레드시트
-
-1. [Google Sheets](https://sheets.google.com) 새 문서
-2. 1행 헤더: `접수시각 | 회사 | 담당자 | 이메일 | 업종 | 투자규모 | 진출지역 | 요청내용`
-
-### 2단계 — Apps Script
-
-1. 확장 프로그램 → Apps Script
-2. `scripts/google-sheets-apps-script.gs` 내용 붙여넣기
-3. 배포 → 새 배포 → 웹 앱 (실행: 나 / 액세스: 모든 사용자)
-4. 웹 앱 URL 복사
-
-### 3단계 — Cloudflare 변수
-
-Pages → Settings → Variables:
-
-| 변수 | 값 |
-|------|-----|
-| `GOOGLE_SHEETS_WEBHOOK_URL` | 웹 앱 URL |
-| `CONTACT_EMAIL` | (선택) 알림 이메일 |
-| `RESEND_API_KEY` | (선택) Resend 키 |
-
-### 4단계 — 확인
-
-폼 제출 후 시트 행 추가 여부 확인. 응답에 `savedToSheet: true` 이면 성공.
+1. 시트 1행: `접수시각 | 회사 | 담당자 | 이메일 | 업종 | 투자규모 | 진출지역 | 요청내용`
+2. Apps Script: `scripts/google-sheets-apps-script.gs` 배포(웹 앱)
+3. Pages → Settings → Variables:
+   - `GOOGLE_SHEETS_WEBHOOK_URL` = 웹 앱 URL
+   - (선택) `CONTACT_EMAIL`, `RESEND_API_KEY`
 
 ---
 
-## 비용
+## 도메인
 
-| 항목 | 비용 |
-|------|------|
-| Pages + Functions | $0 |
-| Google Sheets | $0 |
-| 도메인 | 약 $10/년 |
-
----
-
-## 관련 파일
-
-- `functions/api/contact.ts` — 문의 API
-- `scripts/google-sheets-apps-script.gs` — 시트 저장 스크립트
+Pages → Custom domains → `b-a.asia`
