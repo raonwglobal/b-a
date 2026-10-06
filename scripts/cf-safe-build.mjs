@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
  * b-a static build
- * Prefer scripts/full-page.partN.b64 (gzip of zip-faithful UI) when 4 parts exist;
- * else scripts/full-page.html
+ * Load order:
+ *  1) scripts/full-page.chunk*.txt (plain UTF-8 pieces of zip-faithful UI)
+ *  2) scripts/full-page.part*.b64 (gzip+base64)
+ *  3) scripts/full-page.html
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -31,6 +33,20 @@ function scrub(text) {
     .replaceAll('contact@b-a.asia', 'info@bambooasia.biz')
     .replaceAll('noreply@b-a.asia', 'noreply@bambooasia.biz');
 }
+function loadFromChunks() {
+  const scriptsDir = join(root, 'scripts');
+  if (!existsSync(scriptsDir)) return null;
+  const parts = readdirSync(scriptsDir)
+    .filter((f) => /^full-page\.chunk\d+\.txt$/.test(f))
+    .sort((a, b) => Number(a.match(/chunk(\d+)/)[1]) - Number(b.match(/chunk(\d+)/)[1]));
+  if (parts.length < 2) return null;
+  const html = parts.map((f) => readFileSync(join(scriptsDir, f), 'utf8')).join('');
+  if (html.includes('site-footer') && html.includes('EXECUTION BOARD')) {
+    console.log('[cf-safe-build] loaded UI from full-page.chunk*.txt (' + parts.length + ' chunks)');
+    return html;
+  }
+  return null;
+}
 function loadFromParts() {
   const scriptsDir = join(root, 'scripts');
   if (!existsSync(scriptsDir)) return null;
@@ -42,7 +58,7 @@ function loadFromParts() {
   try {
     const html = gunzipSync(Buffer.from(b64, 'base64')).toString('utf8');
     if (html.includes('site-footer') && html.includes('EXECUTION BOARD')) {
-      console.log('[cf-safe-build] loaded UI from full-page.part*.b64 (' + parts.length + ' parts)');
+      console.log('[cf-safe-build] loaded UI from full-page.part*.b64');
       return html;
     }
   } catch (e) {
@@ -51,19 +67,12 @@ function loadFromParts() {
   return null;
 }
 function loadFullPage() {
-  const fromParts = loadFromParts();
-  if (fromParts) return fromParts;
-  if (existsSync(FULL)) {
-    console.log('[cf-safe-build] loaded UI from full-page.html');
-    return readFileSync(FULL, 'utf8');
-  }
-  return null;
+  return loadFromChunks() || loadFromParts() || (existsSync(FULL) ? readFileSync(FULL, 'utf8') : null);
 }
 
 async function main() {
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   ensureDir(outDir);
-
   const html = loadFullPage();
   if (!html) {
     console.error('[cf-safe-build] FATAL: no full-page source');
@@ -71,7 +80,6 @@ async function main() {
   }
   writeOut('index.html', scrub(html));
   if (existsSync(I18N)) writeOut('i18n.js', readFileSync(I18N, 'utf8'));
-
   writeOut('404.html', '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>');
   console.log('[cf-safe-build] done');
 }
