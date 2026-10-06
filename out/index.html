@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>b/a - 베트남 사업 실행 플랫폼</title>
+  <meta name="description" content="베트남 진출의 모든 과정을 하나의 파트너와 함께. 법인설립, 거래·M&A, 산업별 현지화, 보안·준법, 현지 운영 통합 지원" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, -apple-system, sans-serif; color: #101828; background: #fff; }
+    .font-serif { font-family: "Playfair Display", serif; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 0 1.25rem; }
+    header { border-bottom: 1px solid #e5e7eb; padding: 1rem 0; }
+    header .inner { display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-weight: 700; font-size: 1.25rem; letter-spacing: -0.02em; }
+    .logo span { color: #16a34a; }
+    .langs button { margin-left: 0.35rem; border: 1px solid #e5e7eb; background: #fff; border-radius: 999px; padding: 0.25rem 0.65rem; font-size: 0.75rem; cursor: pointer; }
+    .langs button.active { background: #16a34a; color: #fff; border-color: #16a34a; }
+    .hero { padding: 3.5rem 0 2.5rem; }
+    .eyebrow { font-size: 0.7rem; letter-spacing: 0.12em; color: #16a34a; font-weight: 600; margin-bottom: 0.75rem; }
+    h1 { font-family: "Playfair Display", serif; font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.25; margin: 0 0 1rem; white-space: pre-line; }
+    .sub { color: #4b5563; line-height: 1.65; margin-bottom: 1.5rem; }
+    .cta { display: inline-block; background: #16a34a; color: #fff; text-decoration: none; padding: 0.75rem 1.5rem; border-radius: 999px; font-weight: 600; font-size: 0.95rem; }
+    section.contact { padding: 2rem 0 3.5rem; border-top: 1px solid #f3f4f6; }
+    section.contact h2 { font-size: 1.25rem; margin-bottom: 1rem; }
+    .field { margin-bottom: 0.75rem; }
+    .field label { display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 0.25rem; }
+    input, textarea, select { width: 100%; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.65rem 0.85rem; font-size: 0.95rem; font-family: inherit; }
+    input:focus, textarea:focus, select:focus { outline: 2px solid #bbf7d0; border-color: #16a34a; }
+    button.submit { width: 100%; height: 3rem; border: 0; border-radius: 999px; background: #16a34a; color: #fff; font-weight: 600; font-size: 1rem; cursor: pointer; margin-top: 0.5rem; }
+    button.submit:disabled { opacity: 0.6; cursor: not-allowed; }
+    .msg { margin-top: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.75rem; font-size: 0.875rem; }
+    .msg.ok { background: #f0fdf4; color: #166534; }
+    .msg.err { background: #fef2f2; color: #991b1b; }
+    footer { border-top: 1px solid #e5e7eb; padding: 1.5rem; text-align: center; font-size: 0.75rem; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap inner">
+      <div class="logo">b/<span>a</span></div>
+      <div class="langs" id="langs">
+        <button type="button" data-lang="KR" class="active">KR</button>
+        <button type="button" data-lang="EN">EN</button>
+        <button type="button" data-lang="VI">VI</button>
+        <button type="button" data-lang="JP">JP</button>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <div class="eyebrow" id="eyebrow">VIETNAM BUSINESS EXECUTION PLATFORM</div>
+        <h1 id="heroTitle">베트남 진출의 모든 과정을
+하나의 파트너와 함께</h1>
+        <p class="sub" id="heroSub">법인설립, 거래·M&A, 산업별 현지화, 보안·준법, 현지 운영을 통합 지원합니다. 시장조사부터 사업 실행과 운영관리까지 복잡한 절차를 체계적으로 연결해 빠르고 안전한 베트남 사업 진입을 지원합니다.</p>
+        <a class="cta" href="#contact" id="heroCTA">실행 상담하기</a>
+      </div>
+    </section>
+    <section class="contact" id="contact">
+      <div class="wrap">
+        <h2 id="contactTitle">실행 상담 문의</h2>
+        <form id="inquiryForm">
+          <div class="field"><label for="company">회사명 *</label><input id="company" name="company" required placeholder="회사명" /></div>
+          <div class="field"><label for="name">담당자</label><input id="name" name="name" placeholder="담당자 성함" /></div>
+          <div class="field"><label for="email">이메일 *</label><input id="email" name="email" type="email" required placeholder="email@company.com" /></div>
+          <div class="field"><label for="industry">업종</label>
+            <select id="industry" name="industry">
+              <option value="">선택</option>
+              <option>제조</option><option>농업·식품</option><option>물류</option><option>IT·소프트웨어</option><option>유통·리테일</option><option>기타</option>
+            </select>
+          </div>
+          <div class="field"><label for="scale">투자규모</label>
+            <select id="scale" name="scale">
+              <option value="">선택</option>
+              <option>~50만 USD</option><option>50만~200만 USD</option><option>200만~500만 USD</option><option>500만 USD 이상</option>
+            </select>
+          </div>
+          <div class="field"><label for="region">진출지역</label><input id="region" name="region" placeholder="예: 호치민, 하노이" /></div>
+          <div class="field"><label for="need">지원 내용</label><textarea id="need" name="need" rows="4" placeholder="필요하신 지원 내용을 적어 주세요"></textarea></div>
+          <button type="submit" class="submit" id="submitBtn">문의 제출</button>
+          <div id="result" class="msg" style="display:none"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <footer>© <span id="year"></span> b/a — Vietnam Business Execution Platform</footer>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const content = {
+      KR: { heroTitle: "베트남 진출의 모든 과정을\n하나의 파트너와 함께", heroSub: "법인설립, 거래·M&A, 산업별 현지화, 보안·준법, 현지 운영을 통합 지원합니다. 시장조사부터 사업 실행과 운영관리까지 복잡한 절차를 체계적으로 연결해 빠르고 안전한 베트남 사업 진입을 지원합니다.", heroCTA: "실행 상담하기", contactTitle: "실행 상담 문의", submit: "문의 제출" },
+      EN: { heroTitle: "Your Entire Vietnam Entry\nWith One Execution Partner", heroSub: "From incorporation and M&A to localization, compliance and operations. We connect complex steps into one systematic flow for fast and secure market entry.", heroCTA: "Start Execution Call", contactTitle: "Execution Inquiry", submit: "Submit" },
+      VI: { heroTitle: "Toàn bộ hành trình vào\nViệt Nam cùng một đối tác", heroSub: "Hỗ trợ tích hợp thành lập pháp nhân, M&A, bản địa hóa theo ngành, bảo mật/tuân thủ và vận hành.", heroCTA: "Tư vấn thực thi", contactTitle: "Yêu cầu tư vấn", submit: "Gửi" },
+      JP: { heroTitle: "ベトナム進出の全工程を\n一つのパートナーと共に", heroSub: "法人設立、M&A、産業別ローカライズ、セキュリティ・コンプライアンス、現地運営を統合支援。", heroCTA: "実行相談する", contactTitle: "実行相談のお問い合わせ", submit: "送信" }
+    };
+    document.getElementById('langs').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-lang]');
+      if (!btn) return;
+      const lang = btn.dataset.lang;
+      document.querySelectorAll('#langs button').forEach(b => b.classList.toggle('active', b === btn));
+      const c = content[lang];
+      document.getElementById('heroTitle').textContent = c.heroTitle;
+      document.getElementById('heroSub').textContent = c.heroSub;
+      document.getElementById('heroCTA').textContent = c.heroCTA;
+      document.getElementById('contactTitle').textContent = c.contactTitle;
+      document.getElementById('submitBtn').textContent = c.submit;
+    });
+    document.getElementById('inquiryForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+      const result = document.getElementById('result');
+      const btn = document.getElementById('submitBtn');
+      if (!data.company || !data.email) {
+        result.style.display = 'block';
+        result.className = 'msg err';
+        result.textContent = '회사명과 이메일은 필수입니다.';
+        return;
+      }
+      btn.disabled = true;
+      result.style.display = 'none';
+      try {
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const json = await res.json().catch(() => ({}));
+        result.style.display = 'block';
+        if (res.ok && json.success) {
+          result.className = 'msg ok';
+          result.textContent = json.message || '문의가 접수되었습니다. 확인 후 연락드리겠습니다.';
+          form.reset();
+        } else {
+          result.className = 'msg err';
+          result.textContent = json.error || '전송에 실패했습니다. 잠시 후 다시 시도해주세요.';
+        }
+      } catch {
+        result.style.display = 'block';
+        result.className = 'msg err';
+        result.textContent = '네트워크 오류가 발생했습니다.';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
