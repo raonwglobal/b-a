@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>b/a - Vietnam Business Execution Platform</title>
+<meta name="description" content="Vietnam Business Execution Platform"/>
+<link rel="canonical" href="https://b-a.bambooasia.biz/"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--green:#16A34A;--green-d:#14532D;--ink:#101828;--muted:#667085;--line:#E5E7EB}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,-apple-system,sans-serif;color:var(--ink);background:#fff}
+a{color:inherit;text-decoration:none}.wrap{max-width:1120px;margin:0 auto;padding:0 1.25rem}
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+header .bar{display:flex;align-items:center;justify-content:space-between;height:64px;gap:1rem}
+.logo{font-weight:700;font-size:1.15rem}.logo span{color:var(--green)}.logo small{display:block;font-size:.55rem;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.nav-links{display:none;gap:1.1rem;font-size:.8rem;color:#344054}@media(min-width:960px){.nav-links{display:flex}}.nav-links a:hover{color:var(--green)}
+.langs button{border:0;background:transparent;padding:.3rem .45rem;border-radius:999px;font-size:.7rem;font-weight:600;color:var(--muted);cursor:pointer}.langs button.active{background:var(--ink);color:#fff}
+.btn-green{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;background:var(--green);color:#fff;border:0;border-radius:999px;padding:.65rem 1.15rem;font-weight:600;font-size:.85rem;cursor:pointer}.btn-green:hover{background:var(--green-d)}
+.btn-ghost{display:inline-flex;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:.65rem 1.15rem;font-weight:600;font-size:.85rem}
+.hero{background:linear-gradient(160deg,#0b1f1a 0%,#0f2a22 40%,#122a3a 100%);color:#fff;padding:4rem 0 3.5rem;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:48px 48px;opacity:.5}
+.hero .wrap{position:relative;display:grid;gap:2rem}@media(min-width:900px){.hero .wrap{grid-template-columns:1.1fr .9fr;align-items:center}}
+.eyebrow{display:inline-flex;font-size:.65rem;letter-spacing:.12em;font-weight:600;color:#86efac;border:1px solid rgba(134,239,172,.35);border-radius:999px;padding:.35rem .75rem;margin-bottom:1rem}
+.hero h1{font-family:"Playfair Display",serif;font-size:clamp(1.85rem,4vw,2.75rem);line-height:1.2;margin:0 0 1rem;white-space:pre-line}
+.hero .sub{color:#d1d5db;line-height:1.65;margin:0 0 1.5rem;max-width:36rem}
+.hero-actions{display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:2rem}
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;border-top:1px solid rgba(255,255,255,.1);padding-top:1.25rem}
+.pillars strong{display:block;color:#86efac;font-size:.8rem;margin-bottom:.25rem}.pillars span{font-size:.72rem;color:#9ca3af}
+.hero-card{background:rgba(15,30,40,.7);border:1px solid rgba(255,255,255,.12);border-radius:1.25rem;padding:1.25rem}
+.hero-card .grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.hero-card .chip{background:rgba(255,255,255,.08);border-radius:.75rem;padding:.65rem .75rem;font-size:.72rem;text-align:center}
+.hero-card .chip.g{background:var(--green);color:#fff;font-weight:600}.hero-card .chip.o{background:#ea580c;color:#fff;font-weight:600}.hero-card .chip.b{background:#2563eb;color:#fff;font-weight:600}.hero-card .chip.p{background:#7c3aed;color:#fff;font-weight:600}
+.hero-card .center{grid-column:1/-1;background:#fff;color:var(--ink);border-radius:.85rem;padding:1rem;font-weight:700;text-align:center}
+section{padding:3.5rem 0}section.alt{background:#FAFAF8}
+.kicker{font-size:.7rem;letter-spacing:.1em;font-weight:700;color:var(--green);margin-bottom:.5rem}
+h2{font-family:"Playfair Display",serif;font-size:clamp(1.5rem,3vw,2rem);margin:0 0 .75rem;white-space:pre-line}
+.lead{color:var(--muted);line-height:1.65;max-width:40rem;margin-bottom:1.5rem}
+.check-list{list-style:none;padding:0;margin:0;display:grid;gap:.55rem}.check-list li{display:flex;gap:.5rem;font-size:.9rem;line-height:1.45}.check-list li::before{content:"✓";color:var(--green);font-weight:700}
+.note{margin-top:1.25rem;padding:1rem 1.15rem;background:#fff;border:1px solid var(--line);border-radius:.85rem;font-size:.85rem;color:#374151}
+.steps{counter-reset:s;display:grid;gap:.5rem;padding:0}.steps li{list-style:none;display:flex;gap:.65rem;font-size:.88rem}.steps li::before{counter-increment:s;content:counter(s);width:1.4rem;height:1.4rem;border-radius:999px;background:var(--ink);color:#fff;font-size:.7rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ind-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem}.ind-grid article{border:1px solid var(--line);border-radius:1rem;padding:1rem;background:#fff}.ind-grid h3{margin:0 0 .35rem;font-size:.95rem}.ind-grid p{margin:0;font-size:.75rem;color:var(--muted);line-height:1.4}
+.proc{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem}.proc article{border:1px solid var(--line);border-radius:1rem;padding:1rem;background:#fff}.proc .n{font-size:.7rem;font-weight:700;color:var(--green)}.proc h3{margin:.25rem 0;font-size:.9rem}.proc p{margin:0;font-size:.75rem;color:var(--muted)}
+.two{display:grid;gap:2rem}@media(min-width:800px){.two{grid-template-columns:1fr 1fr}}
+.targets{list-style:none;padding:0;margin:0;display:grid;gap:.5rem;font-size:.9rem}.targets li::before{content:"▣ ";color:var(--green)}
+.strengths{display:grid;gap:.75rem}.strengths article{border:1px solid var(--line);border-radius:.85rem;padding:1rem;background:#fff}.strengths strong{display:block;margin-bottom:.25rem}.strengths span{font-size:.8rem;color:var(--muted)}
+.pkgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}.pkgs article{border:1px solid var(--line);border-radius:1.1rem;padding:1.25rem;background:#fff;display:flex;flex-direction:column}.pkgs .tag{font-size:.7rem;font-weight:700;color:var(--green);letter-spacing:.06em}.pkgs h3{margin:.35rem 0;font-size:1.05rem}.pkgs .desc{font-size:.8rem;color:var(--muted);margin-bottom:.75rem}.pkgs ul{margin:0 0 1rem;padding-left:1.1rem;font-size:.8rem;color:#374151;flex:1}.pkgs .btn-green{width:100%}
+.contact-sec{background:#0f172a;color:#fff}.contact-sec .lead{color:#94a3b8}.contact-grid{display:grid;gap:2rem}@media(min-width:900px){.contact-grid{grid-template-columns:1.1fr .9fr}}
+label{display:block;font-size:.75rem;color:#94a3b8;margin-bottom:.3rem}
+input,select,textarea{width:100%;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;border-radius:.75rem;padding:.7rem .85rem;font:inherit;margin-bottom:.75rem}
+input::placeholder,textarea::placeholder{color:#64748b}
+.side-cards{display:grid;gap:.75rem}.side-cards article{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:1rem;padding:1rem}.side-cards .n{font-size:.7rem;color:#86efac;font-weight:700}.side-cards h3{margin:.25rem 0;font-size:.95rem}.side-cards p{margin:0;font-size:.8rem;color:#94a3b8}
+.promise{display:grid;gap:.5rem;margin-top:1rem;font-size:.8rem;color:#cbd5e1}
+.msg{margin-top:.5rem;padding:.75rem 1rem;border-radius:.75rem;font-size:.85rem;display:none}.msg.ok{display:block;background:#052e16;color:#86efac}.msg.err{display:block;background:#450a0a;color:#fca5a5}
+footer{padding:1.75rem 1.25rem;text-align:center;font-size:.75rem;color:var(--muted);border-top:1px solid var(--line);line-height:1.7}footer a{color:var(--green)}
+</style>
+</head>
+<body>
+<header><div class="wrap bar">
+<div class="logo">b/<span>a</span><small>VIETNAM EXECUTION PLATFORM</small></div>
+<nav class="nav-links" id="navLinks"></nav>
+<div style="display:flex;align-items:center;gap:.5rem">
+<div class="langs" id="langs">
+<button type="button" data-lang="KR" class="active">KR</button>
+<button type="button" data-lang="EN">EN</button>
+<button type="button" data-lang="VI">VI</button>
+<button type="button" data-lang="JP">JP</button>
+</div>
+<a class="btn-green" href="#contact" id="ctaTop"></a>
+</div></div></header>
+<section class="hero"><div class="wrap"><div>
+<div class="eyebrow" id="eyebrow"></div>
+<h1 id="heroTitle"></h1>
+<p class="sub" id="heroSub"></p>
+<div class="hero-actions">
+<a class="btn-green" href="#contact" id="heroCTA1"></a>
+<a class="btn-ghost" href="#packages" id="heroCTA2"></a>
+</div>
+<div class="pillars" id="pillars"></div>
+</div>
+<div class="hero-card"><div class="grid">
+<div class="chip g">Incorporation</div><div class="chip o">Transaction</div>
+<div class="center">[ b/a ] EXECUTION</div>
+<div class="chip p">Security</div><div class="chip b">Localization</div>
+</div><div style="margin-top:1rem;font-size:.75rem;color:#94a3b8;text-align:center">PMO · VDR · CHECK</div></div>
+</div></section>
+<section id="services"><div class="wrap"><div class="kicker" id="s1_kicker"></div><h2 id="s1_title"></h2><p class="lead" id="s1_body"></p><ul class="check-list" id="s1_items"></ul><div class="note" id="s1_note"></div></div></section>
+<section class="alt" id="deals"><div class="wrap"><div class="kicker" id="s2_kicker"></div><h2 id="s2_title"></h2><p class="lead" id="s2_body"></p><ol class="steps" id="s2_steps"></ol><div class="note" id="s2_note"></div></div></section>
+<section id="industries"><div class="wrap"><div class="kicker" id="s3_kicker"></div><h2 id="s3_title"></h2><p class="lead" id="s3_body"></p><div class="ind-grid" id="industriesGrid"></div></div></section>
+<section class="alt" id="security"><div class="wrap"><div class="kicker" id="s4_kicker"></div><h2 id="s4_title"></h2><p class="lead" id="s4_body"></p><ul class="check-list" id="s4_items"></ul></div></section>
+<section id="operations"><div class="wrap"><div class="kicker" id="s5_kicker"></div><h2 id="s5_title"></h2><p class="lead" id="s5_body"></p><ul class="check-list" id="s5_items"></ul></div></section>
+<section class="alt" id="process"><div class="wrap"><h2 id="proc_title"></h2><p class="lead" id="proc_sub"></p><div class="proc" id="proc"></div></div></section>
+<section><div class="wrap two"><div><h2 id="target_title"></h2><ul class="targets" id="targets"></ul></div><div><h2 id="strength_title"></h2><div class="strengths" id="strengths"></div></div></div></section>
+<section class="alt" id="packages"><div class="wrap"><h2 id="pkg_title"></h2><p class="lead" id="pkg_sub"></p><div class="pkgs" id="pkgs"></div></div></section>
+<section class="contact-sec" id="contact"><div class="wrap contact-grid"><div>
+<h2 id="final_title" style="color:#fff"></h2><p class="lead" id="final_sub"></p>
+<p style="color:#86efac;font-weight:600;margin-bottom:1.5rem" id="final_cta"></p>
+<h3 id="form_title" style="margin:0 0 .35rem;font-size:1.1rem"></h3>
+<p style="font-size:.8rem;color:#94a3b8;margin:0 0 1rem" id="form_note"></p>
+<form id="inquiryForm">
+<label id="l_company"></label><input name="company" id="company" required/>
+<label id="l_name"></label><input name="name" id="name"/>
+<label id="l_email"></label><input name="email" id="email" type="email" required/>
+<label id="l_industry"></label><select name="industry" id="industry"></select>
+<label id="l_scale"></label><select name="scale" id="scale"></select>
+<label id="l_region"></label><input name="region" id="region"/>
+<label id="l_need"></label><textarea name="need" id="need" rows="4"></textarea>
+<button type="submit" class="btn-green" id="submitBtn" style="width:100%"></button>
+<div id="result" class="msg"></div>
+</form>
+<p style="margin-top:1rem;font-size:.8rem;color:#94a3b8">
+<a href="mailto:info@bambooasia.biz" style="color:#86efac">info@bambooasia.biz</a>
+ · <a href="https://b-a.bambooasia.biz" style="color:#86efac">b-a.bambooasia.biz</a>
+</p>
+</div><div><div class="side-cards" id="after"></div><div class="promise" id="promise"></div></div>
+</div></section>
+<footer>© <span id="year"></span> <span id="footerText"></span><br/>
+<a href="https://b-a.bambooasia.biz">b-a.bambooasia.biz</a> · <a href="mailto:info@bambooasia.biz">info@bambooasia.biz</a>
+</footer>
+<script src="/i18n.js"></script>
+<script>
+let lang='KR';const $=id=>document.getElementById(id);
+function setText(id,v){const el=$(id);if(el)el.textContent=v;}
+function render(){
+const t=I18N[lang];
+document.documentElement.lang={KR:'ko',EN:'en',VI:'vi',JP:'ja'}[lang]||'ko';
+const anchors=['#services','#deals','#industries','#security','#operations','#process'];
+$('navLinks').innerHTML=t.nav.map((n,i)=>`<a href="${anchors[i]||'#contact'}">${n}</a>`).join('');
+setText('ctaTop',t.ctaTop);setText('eyebrow',t.eyebrow);setText('heroTitle',t.heroTitle);setText('heroSub',t.heroSub);
+setText('heroCTA1',t.heroCTA1);setText('heroCTA2',t.heroCTA2);
+$('pillars').innerHTML=t.pillars.map(([a,b])=>`<div><strong>${a}</strong><span>${b}</span></div>`).join('');
+setText('s1_kicker',t.s1_kicker);setText('s1_title',t.s1_title);setText('s1_body',t.s1_body);setText('s1_note',t.s1_note);
+$('s1_items').innerHTML=t.s1_items.map(x=>`<li>${x}</li>`).join('');
+setText('s2_kicker',t.s2_kicker);setText('s2_title',t.s2_title);setText('s2_body',t.s2_body);setText('s2_note',t.s2_note);
+$('s2_steps').innerHTML=t.s2_steps.map(x=>`<li>${x}</li>`).join('');
+setText('s3_kicker',t.s3_kicker);setText('s3_title',t.s3_title);setText('s3_body',t.s3_body);
+$('industriesGrid').innerHTML=t.industries.map(([h,p])=>`<article><h3>${h}</h3><p>${p}</p></article>`).join('');
+setText('s4_kicker',t.s4_kicker);setText('s4_title',t.s4_title);setText('s4_body',t.s4_body);
+$('s4_items').innerHTML=t.s4_items.map(x=>`<li>${x}</li>`).join('');
+setText('s5_kicker',t.s5_kicker);setText('s5_title',t.s5_title);setText('s5_body',t.s5_body);
+$('s5_items').innerHTML=t.s5_items.map(x=>`<li>${x}</li>`).join('');
+setText('proc_title',t.proc_title);setText('proc_sub',t.proc_sub);
+$('proc').innerHTML=t.proc.map(([h,p],i)=>`<article><div class="n">0${i+1}</div><h3>${h}</h3><p>${p}</p></article>`).join('');
+setText('target_title',t.target_title);$('targets').innerHTML=t.targets.map(x=>`<li>${x}</li>`).join('');
+setText('strength_title',t.strength_title);$('strengths').innerHTML=t.strengths.map(([a,b])=>`<article><strong>${a}</strong><span>${b}</span></article>`).join('');
+setText('pkg_title',t.pkg_title);setText('pkg_sub',t.pkg_sub);
+$('pkgs').innerHTML=t.packages.map(([tag,title,desc,items])=>`<article><div class="tag">${tag}</div><h3>${title}</h3><div class="desc">${desc}</div><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul><a class="btn-green" href="#contact">${t.pkg_btn}</a></article>`).join('');
+setText('final_title',t.final_title);setText('final_sub',t.final_sub);setText('final_cta',t.final_cta);
+setText('form_title',t.form_title);setText('form_note',t.form_note);
+setText('l_company',t.labels.company);setText('l_name',t.labels.name);setText('l_email',t.labels.email);
+setText('l_industry',t.labels.industry);setText('l_scale',t.labels.scale);setText('l_region',t.labels.region);setText('l_need',t.labels.need);
+$('company').placeholder=t.ph.company;$('name').placeholder=t.ph.name;$('email').placeholder=t.ph.email;$('region').placeholder=t.ph.region;$('need').placeholder=t.ph.need;
+$('industry').innerHTML=t.ind_opts.map((o,i)=>`<option value="${i?o:''}">${o}</option>`).join('');
+$('scale').innerHTML=t.scale_opts.map((o,i)=>`<option value="${i?o:''}">${o}</option>`).join('');
+setText('submitBtn',t.submit);
+$('after').innerHTML=t.after.map(([n,h,p])=>`<article><div class="n">${n}</div><h3>${h}</h3><p>${p}</p></article>`).join('');
+$('promise').innerHTML=t.promise.map(([a,b])=>`<div>✓ <strong>${a}</strong> — ${b}</div>`).join('');
+setText('footerText',t.footer);
+}
+document.getElementById('langs').addEventListener('click',e=>{const btn=e.target.closest('button[data-lang]');if(!btn)return;lang=btn.dataset.lang;document.querySelectorAll('#langs button').forEach(b=>b.classList.toggle('active',b===btn));render();});
+$('year').textContent=new Date().getFullYear();render();
+$('inquiryForm').addEventListener('submit',async e=>{e.preventDefault();const t=I18N[lang];const data=Object.fromEntries(new FormData(e.target).entries());const result=$('result');const btn=$('submitBtn');
+if(!data.company?.trim()||!data.email?.trim()){result.className='msg err';result.textContent=t.err_req;return;}
+btn.disabled=true;btn.textContent=t.submitting;result.className='msg';result.textContent='';
+try{const res=await fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const json=await res.json().catch(()=>({}));
+if(res.ok&&json.success){result.className='msg ok';result.textContent=json.message||t.ok;e.target.reset();}else{result.className='msg err';result.textContent=json.error||t.err_fail;}
+}catch{result.className='msg err';result.textContent=t.err_net;}finally{btn.disabled=false;btn.textContent=t.submit;}});
+</script>
+</body></html>
