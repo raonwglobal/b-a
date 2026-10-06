@@ -1,76 +1,64 @@
-# b/a — Cloudflare Pages 배포 (정적 Next.js)
+# b/a — Cloudflare Pages 배포
 
-## 근본 구조
+## GitHub Actions 빌드 테스트 (우선)
 
-이 프로젝트는 **Next.js Static Export** 입니다.
+리포에 **Build (static export)** 워크플로가 있습니다.
 
-| 항목 | 값 |
-|------|-----|
-| `next.config.js` | `output: 'export'` |
-| 빌드 결과물 | **`out/`** (`.next` 아님) |
-| API | `functions/api/*` (Pages Functions) |
-| SSR / next-on-pages | **사용하지 않음** |
+- 경로: `.github/workflows/build.yml`
+- 동작: `npm run build` → `out/` 생성 여부만 검증 (**wrangler 사용 안 함**)
+- 확인: GitHub → **Actions** 탭 → 최신 실행 결과
 
-Cloudflare가 아래처럼 감지하면 **잘못된 경로**입니다.
+로컬에서 동일 검증:
 
-```
-Framework: Next.js
-Output Directory: .next    ← 잘못됨
-Worker Name: b-a           ← Workers SSR 경로
+```bash
+npm install
+npm run build
+ls out/index.html   # 있어야 함
 ```
 
-올바르면:
-
-```
-Framework: None 또는 Next.js (Static HTML Export)
-Output Directory: out
-Build command: npm run build   (또는 bun run build)
-```
+이 빌드가 성공하면 **앱 코드/Next 설정은 정상**입니다.  
+Cloudflare 오류는 **배포 설정(wrangler deploy)** 문제일 가능성이 큽니다.
 
 ---
 
-## 대시보드 설정 (필수)
+## Cloudflare 반복 오류의 근본 원인
 
-**Workers & Pages → Pages 프로젝트 → Settings → Builds & deployments**
+로그에 이런 메시지가 있으면:
 
-| 항목 | 올바른 값 |
-|------|-----------|
-| Framework preset | **Next.js (Static HTML Export)** 또는 **None** |
-| Build command | `npm run build` 또는 `bun run build` |
-| **Build output directory** | **`out`** ← `.next` 로 두면 실패 |
-| Root directory | `/` |
-| Deploy command | **비움** |
-| Node.js version | 18 또는 20 |
+```
+wrangler deploy on a Pages project
+Missing entry-point to Worker script
+```
 
-저장 후 **Retry deployment**.
+**Build/Deploy 명령에 `wrangler deploy`가 들어가 있거나**,  
+플랫폼이 Workers 경로로 실행 중인 상태입니다.
 
-### 자주 나는 오류
+이 프로젝트는:
 
-1. **`Next.js ... cannot be automatically configured` / `14.2.35`**
-   - SSR 자동 설정 경로로 들어간 경우. Next는 14.2.35+ 로 맞춤.
-   - 그래도 Framework/Output 이 `.next` 이면 위 표대로 **out** 으로 수동 변경.
+| 올바른 것 | 잘못된 것 |
+|-----------|----------|
+| `npm run build` | `wrangler deploy` |
+| 산출물 `out/` | 산출물 `.next` |
+| **Pages** | **Workers** |
+| `functions/` API | Worker `main` entry |
 
-2. **`Workers-specific command in a Pages project`**
-   - Deploy command 에 `wrangler deploy` 가 있음 → 삭제.
-   - 로컬 CLI 는 `npx wrangler pages deploy out` 만 사용.
+### 대시보드 필수 값
 
-3. **`Missing entry-point to Worker script`**
-   - Workers 로 만든 프로젝트 → **Pages** 로 새로 연결.
+**Pages** 프로젝트 → Settings → Builds & deployments
+
+| 항목 | 값 |
+|------|-----|
+| Framework preset | **None** 또는 Next.js (Static HTML Export) |
+| **Build command** | `npm run build` |
+| **Build output directory** | `out` |
+| **Deploy command** | **완전 비움** |
+| Node | 18 또는 20 |
+
+`wrangler.toml` 은 리포에서 제거했습니다. (있으면 CF가 `wrangler deploy`를 시도하는 경우가 있음)
 
 ---
 
 ## 문의 → Google Sheets
 
-1. 시트 헤더: `접수시각 | 회사 | 담당자 | 이메일 | 업종 | 투자규모 | 진출지역 | 요청내용`
-2. `scripts/google-sheets-apps-script.gs` 웹 앱 배포
-3. Pages Variables: `GOOGLE_SHEETS_WEBHOOK_URL`
-
----
-
-## 로컬 빌드 확인
-
-```bash
-npm install
-npm run build
-ls out    # index.html 등이 있어야 함
-```
+Variables: `GOOGLE_SHEETS_WEBHOOK_URL`  
+스크립트: `scripts/google-sheets-apps-script.gs`
