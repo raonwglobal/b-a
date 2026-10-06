@@ -1,18 +1,20 @@
 #!/usr/bin/env node
 /**
- * Restore original UI by mirroring https://www.bambooasia.biz into out/
- * - Keeps the full Next.js static design (dark hero, sections, cards)
- * - Contact: info@bambooasia.biz (never "예시")
- * - Form submit also POSTs /api/contact
+ * 1) Mirror https://www.bambooasia.biz UI → out/
+ * 2) Digital card → out/card/index.html
+ *    Source: scripts/digital-card.html  OR  scripts/digital-card.html.gz.b64
  */
-import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { gunzipSync } from 'node:zlib';
 
 const root = process.cwd();
 const outDir = join(root, 'out');
 const SRC = (process.env.BA_MIRROR_URL || 'https://www.bambooasia.biz').replace(/\/$/, '');
+const cardHtml = join(root, 'scripts', 'digital-card.html');
+const cardB64 = join(root, 'scripts', 'digital-card.html.gz.b64');
 
-console.log('[cf-safe-build] Restoring original UI from', SRC);
+console.log('[cf-safe-build] UI mirror from', SRC);
 
 function ensureDir(p) {
   mkdirSync(p, { recursive: true });
@@ -60,6 +62,18 @@ function scrubContact(text) {
     .replaceAll('noreply@b-a.asia', 'noreply@bambooasia.biz');
 }
 
+function loadDigitalCard() {
+  if (existsSync(cardHtml)) {
+    return readFileSync(cardHtml, 'utf8');
+  }
+  if (existsSync(cardB64)) {
+    const b64 = readFileSync(cardB64, 'utf8').replace(/\s+/g, '');
+    const gz = Buffer.from(b64, 'base64');
+    return gunzipSync(gz).toString('utf8');
+  }
+  return null;
+}
+
 async function main() {
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   ensureDir(outDir);
@@ -77,18 +91,13 @@ async function main() {
 
     if (path.includes('/app/page-') && path.endsWith('.js')) {
       let js = scrubContact(buf.toString('utf8'));
-
-      // wire real API while keeping original modal UX
       if (js.includes('onClick:()=>c(!0)')) {
         js = js.replace(
           'onClick:()=>c(!0)',
           'onClick:()=>{c(!0);try{fetch("/api/contact",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)})}catch(e){}}'
         );
       }
-
-      // remove example label on contact email (source UI)
       js = js.replaceAll('info@bambooasia.biz (예시)', 'info@bambooasia.biz');
-
       body = Buffer.from(js, 'utf8');
     }
 
@@ -101,16 +110,23 @@ async function main() {
       `<script>window.__BA_SITE__='https://b-a.bambooasia.biz';window.__BA_CONTACT_EMAIL__='info@bambooasia.biz';</script></body>`
     );
   }
-
   writeOut('index.html', html);
+
+  const card = loadDigitalCard();
+  if (card) {
+    ensureDir(join(outDir, 'card'));
+    writeFileSync(join(outDir, 'card', 'index.html'), card, 'utf8');
+    console.log('[cf-safe-build] wrote card/index.html');
+  } else {
+    console.warn('[cf-safe-build] WARN: digital card source missing');
+  }
 
   if (!existsSync(join(outDir, 'index.html'))) {
     console.error('[cf-safe-build] FATAL: out/index.html missing');
     process.exit(1);
   }
 
-  console.log('[cf-safe-build] OK — original UI restored from', SRC);
-  console.log('[cf-safe-build] contact: info@bambooasia.biz (no 예시)');
+  console.log('[cf-safe-build] OK — / and /card/');
 }
 
 main().catch((e) => {
