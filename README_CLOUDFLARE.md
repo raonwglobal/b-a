@@ -15,98 +15,116 @@ Cloudflare 무료 플랜으로도 b-a.asia 같은 비즈니스 사이트 충분�
 
 ### 방법 A: GitHub 연결 (추천, 자동 배포)
 
-1. GitHub에 리포지토리 생성 후 이 폴더 푸시
-```bash
-git init
-git add .
-git commit -m "b/a initial"
-git branch -M main
-git remote add origin https://github.com/USERNAME/b-a.git
-git push -u origin main
-```
-
+1. GitHub에 리포지토리 연결 후 푸시된 상태 유지
 2. Cloudflare Dashboard > Workers & Pages > Create Application > Pages > Connect to Git
-
 3. 설정:
    - Framework preset: Next.js (Static HTML Export)
    - Build command: `npm run build`
    - Build output directory: `out`
    - Node version: 18 이상
+4. Deploy → `https://<project>.pages.dev`
 
-4. Deploy 클릭 -> `https://b-a-xxx.pages.dev` 로 라이브
+### 방법 B: 직접 업로드
 
-### 방법 B: 직접 업로드 (Git 없이 가장 빠름)
-
-1. 로컬에서 빌드:
 ```bash
-npm install
-npm run build
+npm install && npm run build
 ```
 
-2. Cloudflare Dashboard > Pages > Create > Direct Upload > `out` 폴더 드래그앤드롭
-
-3. 30초 만에 배포 완료
+Cloudflare Dashboard > Pages > Create > Direct Upload > `out` 폴더 업로드
 
 ---
 
-## 도메인 연결 (b-a.asia) - 무료
+## 도메인 연결 (b-a.asia)
 
-1. Cloudflare Dashboard > Domain Registration에서 `b-a.asia` 구매 (연 $10 내외) 또는 외부에서 구매 후 네임서버만 Cloudflare로 변경
-
-2. Pages > Custom domains > Set up a custom domain > `b-a.asia` 입력
-
-3. 자동 SSL 발급 (무료) -> https://b-a.asia 로 접속
-
-4. www 리다이렉트: Rules > Redirect Rules > `www.b-a.asia` -> `https://b-a.asia` 301
+1. 도메인 구매 후 네임서버를 Cloudflare로 지정 (또는 Cloudflare Registrar)
+2. Pages > Custom domains > `b-a.asia`
+3. SSL 자동 발급
+4. (선택) `www.b-a.asia` → `https://b-a.asia` 301 Redirect Rule
 
 ---
 
-## 문의 폼 무료 처리 3가지 옵션
+## 문의 폼 저장: Google Sheets (권장)
 
-### 옵션 1: Cloudflare Pages Functions (이 폴더에 이미 포함됨, 완전 무료)
+문의 내용은 **Google 스프레드시트에 한 행씩 저장**됩니다.  
+Cloudflare Function(`functions/api/contact.ts`)이 Google Apps Script 웹훅으로 POST 합니다.
 
-- `functions/api/contact.ts` 파일이 이미 있음
-- Pages 배포 시 자동으로 `/api/contact` 엔드포인트 생성
-- 현재는 로그만 남김, 이메일 전송하려면:
+### 1단계 — 스프레드시트 만들기
 
-**무료 이메일 전송 추가:**
-- Cloudflare Dashboard > Pages > Settings > Variables > `RESEND_API_KEY` 추가
-  - Resend.com 가입 (무료 100통/일, 3000통/월)
-  - API Key 발급
-- `CONTACT_EMAIL` 변수에 받을 이메일 설정
-- 코드 주석 해제하면 자동 발송
+1. [Google Sheets](https://sheets.google.com)에서 새 문서 생성 (예: `b-a 문의 접수`)
+2. **1행 헤더**를 아래처럼 입력:
 
-### 옵션 2: Formspree 무료 (코드 수정 없음)
+| A | B | C | D | E | F | G | H |
+|---|---|---|---|---|---|---|---|
+| 접수시각 | 회사 | 담당자 | 이메일 | 업종 | 투자규모 | 진출지역 | 요청내용 |
 
-- formspree.io 가입 (무료 50건/월)
-- `app/page.tsx` 에서 `handleSubmit` 부분 fetch URL만 `https://formspree.io/f/xxxxx` 로 변경
+### 2단계 — Apps Script 배포
 
-### 옵션 3: Google Sheets 무료
+1. 시트 메뉴 **확장 프로그램 → Apps Script**
+2. 에디터에 `scripts/google-sheets-apps-script.gs` 내용 전체 붙여넣기 후 저장
+3. **배포 → 새 배포**
+   - 유형: **웹 앱**
+   - 실행 주체: **나**
+   - 액세스 권한: **모든 사용자**
+4. 배포 후 표시되는 **웹 앱 URL** 복사  
+   (예: `https://script.google.com/macros/s/XXXX/exec`)
 
-- Google Apps Script로 무료 DB化
-- 문의가 구글 시트에 자동 저장
+> 코드를 수정한 뒤에는 **배포 → 배포 관리 → 새 버전**으로 다시 배포해야 URL이 최신 코드를 가리킵니다.
+
+### 3단계 — Cloudflare 환경 변수
+
+Pages 프로젝트 → **Settings → Environment variables** (Production):
+
+| 변수명 | 값 |
+|--------|-----|
+| `GOOGLE_SHEETS_WEBHOOK_URL` | 위에서 복사한 웹 앱 URL |
+| `CONTACT_EMAIL` | (선택) 알림 받을 이메일 |
+| `RESEND_API_KEY` | (선택) Resend API 키 — 메일 알림용 |
+
+저장 후 **재배포** 한 번 실행하는 것을 권장합니다.
+
+### 4단계 — 동작 확인
+
+1. 사이트 문의 폼에서 테스트 제출
+2. 스프레드시트에 새 행이 추가되는지 확인
+3. (선택) Cloudflare → 해당 Pages → **Logs** 에서 `New inquiry from b/a` / `Google Sheets` 로그 확인
+
+응답 JSON 예:
+
+```json
+{ "success": true, "message": "문의가 접수되었습니다.", "savedToSheet": true }
+```
+
+`savedToSheet: false` 이면 웹훅 URL·배포 권한·Apps Script 실행 로그를 점검하세요.
+
+### 보안 참고
+
+- 웹 앱 URL을 아는 사람만 POST 할 수 있으므로, URL은 환경 변수로만 두고 공개 코드에 넣지 마세요.
+- 스팸이 많으면 Apps Script에서 간단한 토큰 검증(`secret` 필드)을 추가할 수 있습니다.
 
 ---
 
-## 비용 정리 (무료로 운영 시)
+## 다른 옵션 (참고)
 
-| 항목 | Cloudflare 무료 플랜 | 비용 |
-|---|---|---|
-| 호스팅 | Pages 무제한 트래픽 | $0 |
-| SSL | 자동 발급 | $0 |
-| 도메인 | b-a.asia 구매 시 연 1회 | ~$10/년 |
-| 빌드 | 500회/월 | $0 |
-| Functions (문의) | 100,000 요청/월 | $0 |
-| 이메일 (Resend) | 100통/일 | $0 |
-| **합계** | **도메인 제외 완전 무료** | **$0/월** |
+| 방식 | 설명 |
+|------|------|
+| **Resend 이메일** | `RESEND_API_KEY` + `CONTACT_EMAIL` — 시트와 병행 가능 |
+| **Formspree** | 폼 fetch URL만 변경, 월 50건 무료 |
+| **로그만** | 변수 미설정 시 Cloudflare Functions 로그에만 기록 |
 
 ---
 
-## 다음 단계
+## 비용 정리 (무료 운영 시)
 
-1. `npm run build` 로 out/ 생성 확인
-2. Cloudflare Pages에 배포
-3. b-a.asia 도메인 연결
-4. Resend API Key 설정하여 문의 폼 이메일 수신
+| 항목 | 비용 |
+|------|------|
+| Cloudflare Pages 호스팅·Functions | $0 |
+| Google Sheets + Apps Script | $0 |
+| Resend (선택, 100통/일) | $0 |
+| 도메인 b-a.asia | 약 $10/년 |
 
-도움이 필요하면 `functions/api/contact.ts` 부분만 알려주면 바로 연동해드립니다.
+---
+
+## 관련 파일
+
+- `functions/api/contact.ts` — 접수 API (시트 웹훅 + Resend)
+- `scripts/google-sheets-apps-script.gs` — 시트에 행 추가하는 Apps Script 원본
