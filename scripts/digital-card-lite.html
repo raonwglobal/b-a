@@ -35,7 +35,10 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 .tagline strong{color:#14532D}
 .chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.85rem}
 .chip{font-size:11px;padding:.35rem .65rem;border-radius:999px;background:rgba(12,22,17,.06);border:1px solid rgba(12,22,17,.1);color:rgba(12,22,17,.75);text-decoration:none}
-.loc{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.4;margin-top:.75rem}
+.front-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-top:1rem}
+.loc{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.4;line-height:1.45}
+.qr-front{width:56px;height:56px;border-radius:10px;background:#fff;padding:4px;border:1px solid rgba(12,22,17,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(12,22,17,.08)}
+.qr-front img,.qr-front canvas{width:100%!important;height:100%!important;display:block}
 .back .sec{font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.35;margin:1.25rem 0 .6rem}
 .services{display:flex;flex-wrap:wrap;gap:.4rem}
 .services span{font-size:11px;padding:.4rem .75rem;border-radius:999px;background:rgba(249,245,235,.07);border:1px solid rgba(249,245,235,.12)}
@@ -132,16 +135,18 @@ function downloadVCard(m){
   a.download='b-a_'+(m.name_kr||m.id||'card').replace(/\s+/g,'_')+'.vcf';
   a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-  toast('vCard 저장됨 · 연락처 앱에서 열기');\n}
-function renderQr(el, text){
+  toast('vCard 저장됨 · 연락처 앱에서 열기');
+}
+function renderQr(el, text, size){
   if(!el)return;
   el.innerHTML='';
+  const px=size||140;
   try{
     if(typeof QRCode!=='undefined'){
       new QRCode(el,{
         text:text,
-        width:140,
-        height:140,
+        width:px,
+        height:px,
         colorDark:'#0C1611',
         colorLight:'#F9F5EB',
         correctLevel:QRCode.CorrectLevel.M
@@ -149,7 +154,7 @@ function renderQr(el, text){
     }else{
       const img=document.createElement('img');
       img.alt='vCard QR';
-      img.src='https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data='+encodeURIComponent(text);
+      img.src='https://api.qrserver.com/v1/create-qr-code/?size='+px+'x'+px+'&margin=0&data='+encodeURIComponent(text);
       el.appendChild(img);
     }
   }catch(e){
@@ -196,7 +201,10 @@ function renderCard(m){
           <a class="chip" href="${telHref(m.phone)}">${m.phone||''}</a>
           <a class="chip" href="mailto:${m.email||''}">${m.email||''}</a>
         </div>
-        <div class="loc">Ho Chi Minh City · Seoul</div>
+        <div class="front-foot">
+          <div class="loc">Ho Chi Minh City · Seoul<br><span style="opacity:.7;letter-spacing:.08em">Scan QR · 연락처</span></div>
+          <div class="qr-front" id="qrFront"></div>
+        </div>
       </div>
       <div class="face back">
         <div style="display:flex;align-items:center;gap:.75rem">
@@ -234,16 +242,17 @@ function renderCard(m){
     <div class="wallet-tip">
       <strong>Google Wallet / 연락처</strong><br>
       1) <b>연락처 저장</b> → .vcf 파일을 열어 주소록에 추가<br>
-      2) 카드 뒷면 <b>QR 스캔</b> → 카메라로 바로 연락처 추가<br>
+      2) 전면·후면 <b>QR 스캔</b> → 카메라로 바로 연락처 추가<br>
       3) Google Wallet: 저장된 QR 이미지를 Wallet → 추가 → 사진 으로도 등록 가능
     </div>
     <a class="backlink" href="/card/">← 멤버 목록</a>`;
   const flip=document.getElementById('flip');
   flip.addEventListener('click',(e)=>{
-    if(e.target.closest('a,button,input,.qr-box'))return;
+    if(e.target.closest('a,button,input,.qr-box,.qr-front'))return;
     flip.classList.toggle('on');
   });
-  renderQr(document.getElementById('qrBox'), vcard);
+  renderQr(document.getElementById('qrFront'), vcard, 96);
+  renderQr(document.getElementById('qrBox'), vcard, 140);
   document.getElementById('vcardBtn').onclick=()=>downloadVCard(m);
   document.getElementById('copyBtn').onclick=async()=>{
     const url=`${SITE}/card/${m.id}/`;
