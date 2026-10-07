@@ -55,25 +55,60 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 .btn-ghost{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#F9F5EB}
 .btn-green{background:#14532D;color:#F9F5EB}
 .toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#F9F5EB;color:#0C1611;padding:.6rem 1rem;border-radius:999px;font-size:12px;z-index:50;opacity:0;pointer-events:none;transition:opacity .25s}
-.toast.show{opacity:1}
+.toast.on{opacity:1}
+.err{padding:2rem;text-align:center;opacity:.7}
 a.backlink{display:inline-block;margin-top:1.25rem;font-size:11px;opacity:.4;color:#C2A77A;text-decoration:none}
 .list-card{display:flex;align-items:center;gap:1rem;padding:1rem;border-radius:16px;background:rgba(249,245,235,.06);border:1px solid rgba(249,245,235,.12);color:inherit;text-decoration:none}
 .list-card:hover{background:rgba(249,245,235,.1)}
 .wallet-tip{margin-top:1rem;padding:.85rem 1rem;border-radius:14px;background:rgba(249,245,235,.06);border:1px solid rgba(249,245,235,.1);font-size:12px;line-height:1.5;opacity:.85}
+.wallet-tip strong{color:#C2A77A;font-weight:600}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 <div class="bg"><i></i><i></i></div>
-<div class="wrap" id="app"></div>
+<div class="wrap" id="app"><p class="err">Loading…</p></div>
 <div class="toast" id="toast"></div>
 <script>
 const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vROc_VAnbXFlbCyCAYvO4P0R6fEJgktqkNCrvShvUzgHBCv-10R5kXprgRpQFuYXM29tTXMTWp7eFXz/pub?gid=0&single=true&output=csv';
 const SITE='https://b-a.bambooasia.biz';
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
-function parseCsv(text){const lines=text.replace(/^\uFEFF/,'').trim().split(/\r?\n/);if(lines.length<2)return[];const headers=lines[0].split(',').map(h=>h.trim());const rows=[];for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const cols=lines[i].split(',');const row={};headers.forEach((h,idx)=>{row[h]=(cols[idx]||'').trim()});if(row.id)rows.push(row)}return rows}
-function phoneDigits(phone){const d=String(phone||'').replace(/[^\d+]/g,'');if(d.startsWith('+'))return d;if(d.startsWith('84'))return '+'+d;return d}
+const FALLBACK=[
+  {id:'taehoon',name_kr:'김태훈',name_en:'Taehoon Kim',title_kr:'대표',title_en:'Representative',phone:'+84 093 685 0555',email:'kim@bambooasia.biz'},
+  {id:'magnox',name_kr:'정성영',name_en:'Seongyoung Jeong',title_kr:'팀장',title_en:'Team Manager',phone:'+84 093 896 7541',email:'magnox@bambooasia.biz'}
+];
+function parseCsv(text){
+  const lines=text.replace(/^\uFEFF/,'').trim().split(/\r?\n/);
+  if(lines.length<2)return[];
+  const headers=lines[0].split(',').map(h=>h.trim());
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    const cols=lines[i].split(',');
+    const row={};
+    headers.forEach((h,idx)=>{row[h]=(cols[idx]||'').trim()});
+    if(row.id)rows.push(row);
+  }
+  return rows;
+}
+function phoneDigits(phone){
+  const d=String(phone||'').replace(/[^\d+]/g,'');
+  if(d.startsWith('+'))return d;
+  if(d.startsWith('84'))return '+'+d;
+  return d;
+}
 function telHref(phone){return 'tel:'+phoneDigits(phone)}
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('on');
+  setTimeout(()=>el.classList.remove('on'),2200);
+}
+function memberId(){
+  const q=new URLSearchParams(location.search).get('id');
+  if(q)return q;
+  const path=location.pathname.replace(/\/+$/,'').split('/');
+  const last=path[path.length-1];
+  return (last&&last!=='card')?last:null;
+}
 function buildVCard(m){
   const fn=(m.name_kr&&m.name_en)?(m.name_kr+' / '+m.name_en):(m.name_kr||m.name_en||m.id||'');
   const n=m.name_en||m.name_kr||m.id||'';
@@ -104,6 +139,44 @@ function downloadVCard(m){
   setTimeout(()=>URL.revokeObjectURL(a.href),1500);
   toast('vCard 저장됨 · 연락처 앱에서 열기');
 }
+function downloadQrImage(m){
+  const text=buildVCard(m);
+  const size=512;
+  const filename='b-a_QR_'+(m.name_kr||m.id||'card').replace(/\s+/g,'_')+'.png';
+  const tryCanvas=()=>{
+    const host=document.createElement('div');
+    host.style.cssText='position:fixed;left:-9999px;top:0;width:'+size+'px;height:'+size+'px';
+    document.body.appendChild(host);
+    try{
+      if(typeof QRCode==='undefined')throw new Error('no lib');
+      new QRCode(host,{
+        text:text,width:size,height:size,
+        colorDark:'#0C1611',colorLight:'#ffffff',
+        correctLevel:QRCode.CorrectLevel.L
+      });
+      const img=host.querySelector('img');
+      const canvas=host.querySelector('canvas');
+      let href=null;
+      if(img&&img.src&&img.src.indexOf('data:image')===0)href=img.src;
+      else if(canvas&&canvas.toDataURL)href=canvas.toDataURL('image/png');
+      host.remove();
+      if(!href)return false;
+      const a=document.createElement('a');
+      a.href=href;a.download=filename;a.click();
+      toast('QR 이미지 저장됨');
+      return true;
+    }catch(e){
+      host.remove();
+      return false;
+    }
+  };
+  if(tryCanvas())return;
+  const url='https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&margin=8&format=png&data='+encodeURIComponent(text);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.target='_blank';a.rel='noopener';
+  a.click();
+  toast('QR 이미지 열림 · 길게 눌러 저장');
+}
 function renderQr(el, text, size){
   if(!el)return;
   el.innerHTML='';
@@ -120,7 +193,6 @@ function renderQr(el, text, size){
   };
   try{
     if(typeof QRCode==='undefined'){drawImg();return;}
-    // L has higher data capacity; M overflows on full vCard
     new QRCode(el,{
       text:text,
       width:px,
@@ -212,17 +284,23 @@ function renderCard(m){
       <a class="btn btn-light" href="${telHref(m.phone)}">전화하기</a>
       <a class="btn btn-ghost" href="mailto:${m.email||''}">이메일</a>
       <button class="btn btn-green" type="button" id="vcardBtn">연락처 저장</button>
-      <button class="btn btn-ghost" type="button" id="shareBtn">공유하기</button>
+      <button class="btn btn-ghost" type="button" id="qrSaveBtn">QR 저장</button>
     </div>
     <div class="actions" style="margin-top:.75rem">
+      <button class="btn btn-ghost" type="button" id="shareBtn" style="height:44px">공유하기</button>
       <button class="btn btn-ghost" type="button" id="copyBtn" style="height:44px">링크 복사</button>
-      <a class="btn btn-ghost" href="${SITE}" target="_blank" rel="noopener" style="height:44px">웹사이트</a>
     </div>
     <div class="wallet-tip">
-      <strong>Google Wallet / 연락처</strong><br>
-      1) <b>연락처 저장</b> → .vcf 파일을 열어 주소록에 추가<br>
-      2) 전면·후면 <b>QR 스캔</b> → 카메라로 바로 연락처 추가<br>
-      3) Google Wallet: 저장된 QR 이미지를 Wallet → 추가 → 사진 으로도 등록 가능
+      <strong>항상 QR 보이게 쓰기</strong><br>
+      1) <b>QR 저장</b> → 사진 앱에 PNG 보관 · 필요할 때 바로 제시<br>
+      2) <b>홈 화면 추가</b> → 이 페이지를 앱처럼 실행 (아래 안내)<br>
+      3) <b>연락처 저장</b> → .vcf 를 열어 Google/Apple 주소록에 추가<br>
+      4) 카메라로 전·후면 QR 스캔 → 연락처 바로 추가
+    </div>
+    <div class="wallet-tip" style="margin-top:.65rem">
+      <strong>홈 화면 추가</strong><br>
+      · <b>iPhone</b>: 공유 → 홈 화면에 추가<br>
+      · <b>Android</b>: 메뉴(⋮) → 홈 화면에 추가 / 앱 설치
     </div>
     <a class="backlink" href="/card/">← 멤버 목록</a>`;
   const flip=document.getElementById('flip');
@@ -233,6 +311,7 @@ function renderCard(m){
   renderQr(document.getElementById('qrFront'), vcard, 88);
   renderQr(document.getElementById('qrBox'), vcard, 88);
   document.getElementById('vcardBtn').onclick=()=>downloadVCard(m);
+  document.getElementById('qrSaveBtn').onclick=()=>downloadQrImage(m);
   document.getElementById('copyBtn').onclick=async()=>{
     const url=`${SITE}/card/${m.id}/`;
     try{await navigator.clipboard.writeText(url);}catch{}
@@ -249,30 +328,26 @@ function renderCard(m){
         });
       }else{
         await navigator.clipboard.writeText(url);
+        toast('링크 복사됨');
       }
     }catch{}
   };
 }
-async function main(){
-  const path=location.pathname.replace(/\/+$/,'').split('/');
-  const id=path[path.length-1]==='card'?null:path[path.length-1];
-  let members=[];
+(async function(){
+  let members=FALLBACK;
   try{
     const res=await fetch(CSV_URL);
-    if(res.ok)members=parseCsv(await res.text());
+    if(res.ok){
+      const parsed=parseCsv(await res.text());
+      if(parsed.length)members=parsed;
+    }
   }catch(e){}
-  if(!members.length)members=[
-    {id:'taehoon',name_kr:'김태훈',name_en:'Taehoon Kim',title_kr:'대표',title_en:'Representative',phone:'+84 093 685 0555',email:'kim@bambooasia.biz'},
-    {id:'magnox',name_kr:'정성영',name_en:'Seongyoung Jeong',title_kr:'팀장',title_en:'Team Manager',phone:'+84 093 896 7541',email:'magnox@bambooasia.biz'}
-  ];
-  if(id&&id!=='card'){
-    const m=members.find(x=>x.id===id)||members[0];
-    renderCard(m);
-  }else{
-    renderList(members);
-  }
-}
-main();
+  const id=memberId();
+  if(!id){renderList(members);return;}
+  const m=members.find(x=>x.id===id)||members[0];
+  if(!m){document.getElementById('app').innerHTML='<p class="err">Member not found</p>';return;}
+  renderCard(m);
+})();
 </script>
 </body>
 </html>
