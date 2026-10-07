@@ -27,7 +27,7 @@ function writeOut(rel, content) {
 
 function loadJoinedParts(prefix) {
   const parts = readdirSync(scriptsDir)
-    .filter((f) => new RegExp(`^${prefix}\\.part\\d+\\.b64$`).test(f))
+    .filter((f) => new RegExp('^' + prefix + '\\.part\\d+\\.b64$').test(f))
     .sort();
   if (!parts.length) return null;
   try {
@@ -98,6 +98,7 @@ async function loadFullPage() {
 function loadI18n() {
   if (existsSync(I18N)) {
     const t = readFileSync(I18N, 'utf8');
+    // reject incomplete stubs (must have VI + JP + footer_brand)
     if (t.length > 15000 && t.includes('"VI"') && t.includes('footer_brand')) {
       console.log('[cf-safe-build] loaded i18n.js');
       return t;
