@@ -120,6 +120,24 @@ async function main() {
     i18n = i18n
       .replaceAll('"ctaTop": "실행 상담하기"', '"ctaTop": "상담하기"')
       .replaceAll('"heroCTA1": "실행 상담하기"', '"heroCTA1": "상담하기"');
+    // /* i18n-compat */ ensure packages/targets exist for render()
+    try {
+      const m = i18n.match(/window\.I18N\s*=\s*(\{[\s\S]*\})\s*;?/);
+      if (m) {
+        const obj = Function("return (" + m[1] + ")")();
+        for (const L of Object.keys(obj)) {
+          const d = obj[L];
+          if (d.pkgs && !d.packages) d.packages = d.pkgs;
+          if (!d.targets) d.targets = d.s1_items || [];
+          if (!d.target_title) d.target_title = d.pkg_title || '';
+          if (!d.strength_title && d.promise) {
+            d.strength_title = d.promise[0]?.[0] || '';
+            d.strengths = d.promise;
+          }
+        }
+        i18n = "window.I18N = " + JSON.stringify(obj) + ";";
+      }
+    } catch (e) { console.warn('[cf-safe-build] i18n compat patch failed', e.message); }
     writeOut('i18n.js', i18n);
   } else {
     console.warn('[cf-safe-build] no i18n available');
