@@ -2,10 +2,12 @@
 /**
  * b-a static build — recovers UI from git history when full-page.html is PLACEHOLDER.
  * Applies CTA label (상담하기) and header btn-cta vertical alignment.
+ * Builds digital cards at /card/ (not in main nav).
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { gunzipSync } from 'node:zlib';
+import { buildDigitalCards } from './build-digital-cards.mjs';
 
 const root = process.cwd();
 const outDir = join(root, 'out');
@@ -38,10 +40,6 @@ function scrub(text) {
     '.btn-cta{height:40px;padding:0 1.1rem;border-radius:999px;background:#16A34A;color:#fff;border:0;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;line-height:1;white-space:nowrap}'
   );
   return out;
-}
-
-function isReactArtifact(html) {
-  return html.includes('Bc.createRoot') || (html.includes('createRoot') && html.includes('EXECUTION'));
 }
 
 async function loadFullPage() {
@@ -90,5 +88,11 @@ async function main() {
   }
   writeOut('404.html', '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>');
   console.log('[cf-safe-build] done | EXECUTION=', html.includes('EXECUTION'));
+  try {
+    const card = await buildDigitalCards();
+    console.log('[cf-safe-build] digital cards', card);
+  } catch (e) {
+    console.warn('[cf-safe-build] digital cards failed', e.message);
+  }
 }
 main().catch((e) => { console.error(e); process.exit(1); });
