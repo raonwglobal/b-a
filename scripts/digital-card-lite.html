@@ -40,7 +40,7 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 .loc{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.4;line-height:1.45}
 .qr-front,.qr-back{width:52px;height:52px;border-radius:10px;background:#fff;padding:3px;border:1px solid rgba(12,22,17,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(12,22,17,.08);overflow:hidden}
 .qr-back{border-color:rgba(249,245,235,.15);box-shadow:0 4px 14px rgba(0,0,0,.25)}
-.qr-front img,.qr-front canvas,.qr-back img,.qr-back canvas{width:100%!important;height:100%!important;display:block;max-width:100%;max-height:100%}
+.qr-front img,.qr-front canvas,.qr-back img,.qr-back canvas{width:100%!important;height:100%!important;display:block;max-width:100%;max-height:100%;object-fit:contain}
 .back-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
 .back .sec{font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.35;margin:1.1rem 0 .55rem}
 .services{display:flex;flex-wrap:wrap;gap:.4rem}
@@ -74,7 +74,26 @@ function toast(msg){const el=document.getElementById('toast');el.textContent=msg
 function parseCsv(text){const lines=text.replace(/^\uFEFF/,'').trim().split(/\r?\n/);if(lines.length<2)return[];const headers=lines[0].split(',').map(h=>h.trim());const rows=[];for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const cols=lines[i].split(',');const row={};headers.forEach((h,idx)=>{row[h]=(cols[idx]||'').trim()});if(row.id)rows.push(row)}return rows}
 function phoneDigits(phone){const d=String(phone||'').replace(/[^\d+]/g,'');if(d.startsWith('+'))return d;if(d.startsWith('84'))return '+'+d;return d}
 function telHref(phone){return 'tel:'+phoneDigits(phone)}
-function buildVCard(m){const name=m.name_en||m.name_kr||m.id;const nameKr=m.name_kr||name;const phone=m.phone||'+84 093 685 0555';const email=m.email||'info@bambooasia.biz';const title=m.title_en||m.title_kr||'Representative';return ['BEGIN:VCARD','VERSION:3.0','N:'+name+';;;;','FN:'+nameKr+' / '+name,'ORG:b/a · Bamboo Asia','TITLE:'+title,'TEL;TYPE=CELL:'+phoneDigits(phone),'EMAIL:'+email,'URL:'+SITE,'NOTE:Vietnam Business Execution Platform','END:VCARD'].join('\n')}
+function buildVCard(m){
+  const fn=(m.name_kr&&m.name_en)?(m.name_kr+' / '+m.name_en):(m.name_kr||m.name_en||m.id||'');
+  const n=m.name_en||m.name_kr||m.id||'';
+  const title=m.title_en||m.title_kr||'Representative';
+  const tel=phoneDigits(m.phone||'');
+  const email=m.email||'';
+  return [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    'FN:'+fn,
+    'N:'+n+';;;;',
+    'ORG:b/a - Bamboo Asia',
+    'TITLE:'+title,
+    tel?'TEL;TYPE=CELL,VOICE:'+tel:'',
+    email?'EMAIL;TYPE=INTERNET:'+email:'',
+    'URL:'+SITE,
+    'NOTE:b/a Bamboo Asia',
+    'END:VCARD'
+  ].filter(Boolean).join('\n');
+}
 function downloadVCard(m){
   const v=buildVCard(m);
   const blob=new Blob([v],{type:'text/vcard;charset=utf-8'});
@@ -89,24 +108,39 @@ function renderQr(el, text, size){
   if(!el)return;
   el.innerHTML='';
   const px=size||88;
+  const drawImg=()=>{
+    el.innerHTML='';
+    const img=document.createElement('img');
+    img.alt='vCard QR';
+    img.width=px;
+    img.height=px;
+    img.style.cssText='width:100%;height:100%;display:block;object-fit:contain';
+    img.src='https://api.qrserver.com/v1/create-qr-code/?size='+px+'x'+px+'&margin=1&data='+encodeURIComponent(text);
+    el.appendChild(img);
+  };
   try{
-    if(typeof QRCode!=='undefined'){
-      new QRCode(el,{
-        text:text,
-        width:px,
-        height:px,
-        colorDark:'#0C1611',
-        colorLight:'#F9F5EB',
-        correctLevel:QRCode.CorrectLevel.M
-      });
+    if(typeof QRCode==='undefined'){drawImg();return;}
+    // L has higher data capacity; M overflows on full vCard
+    new QRCode(el,{
+      text:text,
+      width:px,
+      height:px,
+      colorDark:'#0C1611',
+      colorLight:'#ffffff',
+      correctLevel:QRCode.CorrectLevel.L
+    });
+    const img=el.querySelector('img');
+    const canvas=el.querySelector('canvas');
+    if(img&&img.src&&img.src.indexOf('data:image')===0){
+      img.style.cssText='width:100%;height:100%;display:block;object-fit:contain';
+      if(canvas)canvas.style.display='none';
+    }else if(canvas&&canvas.width){
+      canvas.style.cssText='width:100%;height:100%;display:block';
     }else{
-      const img=document.createElement('img');
-      img.alt='vCard QR';
-      img.src='https://api.qrserver.com/v1/create-qr-code/?size='+px+'x'+px+'&margin=0&data='+encodeURIComponent(text);
-      el.appendChild(img);
+      drawImg();
     }
   }catch(e){
-    el.textContent='QR';
+    drawImg();
   }
 }
 function renderList(members){
