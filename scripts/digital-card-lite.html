@@ -2,95 +2,242 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>b/a Digital Card · Bamboo Asia</title>
 <meta name="robots" content="noindex"/>
 <style>
-:root{--cream:#F9F5EB;--ink:#0C1611;--green:#16A34A;--gold:#C2A77A;--muted:rgba(12,22,17,.55)}
-*{box-sizing:border-box;margin:0;padding:0}
-body{min-height:100vh;font-family:system-ui,-apple-system,sans-serif;background:#0C1611;color:var(--cream);display:flex;flex-direction:column;align-items:center;padding:1.5rem 1rem 3rem}
-.card-wrap{perspective:1200px;width:100%;max-width:380px;margin:1rem auto}
-.card{position:relative;width:100%;aspect-ratio:1.6/1;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.4,.0,.2,1);cursor:pointer}
-.card.flipped{transform:rotateY(180deg)}
-.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;padding:1.35rem 1.4rem}
-.front{background:linear-gradient(145deg,#F9F5EB 0%,#F0EAD6 100%);color:var(--ink);box-shadow:0 20px 50px rgba(0,0,0,.35)}
-.back{background:linear-gradient(160deg,#0C1611 0%,#15221a 100%);color:var(--cream);transform:rotateY(180deg);box-shadow:0 20px 50px rgba(0,0,0,.4)}
-.logo{width:42px;height:42px;border-radius:12px;background:var(--ink);color:var(--cream);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;letter-spacing:-.02em}
-.front .logo{background:var(--ink);color:var(--cream)}
-.back .logo{background:var(--cream);color:var(--ink)}
-.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.1rem}
-.name{font-size:1.35rem;font-weight:700;letter-spacing:-.02em;line-height:1.2}
-.en{font-size:12px;opacity:.55;margin-top:2px}
-.role{font-size:12px;color:var(--green);font-weight:600;margin-top:.35rem}
-.loc{font-size:11px;opacity:.5;margin-top:.6rem;line-height:1.5}
-.qr-front{width:56px;height:56px;border-radius:10px;background:#fff;padding:4px;border:1px solid rgba(12,22,17,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(12,22,17,.08)}
-.qr-front img,.qr-front canvas{width:100%!important;height:100%!important;display:block}
-.services{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin:1rem 0 auto}
-.svc{font-size:11px;padding:.4rem .55rem;border-radius:8px;background:rgba(12,22,17,.05);border:1px solid rgba(12,22,17,.06)}
-.back .svc{background:rgba(249,245,235,.06);border-color:rgba(249,245,235,.1)}
-.qr-wrap{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;padding-top:1rem}
-.qr-box{width:88px;height:88px;border-radius:12px;background:#F9F5EB;padding:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.qr-box img,.qr-box canvas{width:100%!important;height:100%!important;display:block}
-.qr-label{font-size:10px;opacity:.45;letter-spacing:.06em;text-transform:uppercase;text-align:right;line-height:1.45}
-.actions{display:flex;gap:.6rem;margin-top:1.25rem;width:100%;max-width:380px}
-.btn{flex:1;height:44px;border-radius:12px;border:0;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;text-decoration:none;color:inherit}
-.btn-green{background:var(--green);color:#fff}
-.btn-outline{background:transparent;border:1px solid rgba(249,245,235,.2);color:var(--cream)}
-.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#fff;color:#0C1611;padding:.65rem 1.1rem;border-radius:999px;font-size:13px;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .3s;pointer-events:none;z-index:50}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+body{background:#0C1611;color:#F9F5EB;display:flex;flex-direction:column;align-items:center}
+.bg{pointer-events:none;position:fixed;inset:0;overflow:hidden;z-index:0}
+.bg i{position:absolute;border-radius:50%;filter:blur(110px)}
+.bg i:nth-child(1){top:-30%;left:-10%;width:80%;height:60%;background:rgba(20,83,45,.35)}
+.bg i:nth-child(2){top:20%;right:-15%;width:70%;height:50%;background:rgba(194,167,122,.2)}
+.wrap{position:relative;z-index:1;width:100%;max-width:420px;padding:max(20px,env(safe-area-inset-top)) 1.25rem 2rem}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.brand{display:flex;align-items:center;gap:.75rem}
+.logo{width:30px;height:30px;border-radius:10px;background:#F9F5EB;color:#0C1611;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.brand small{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.55}
+.hint{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.4;text-align:center;margin:0 0 1rem}
+.stage{perspective:1600px;width:100%}
+.flip{position:relative;width:100%;min-height:560px;transition:transform .9s cubic-bezier(.4,.0,.2,1);transform-style:preserve-3d;cursor:pointer}
+.flip.on{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:32px;overflow:hidden;backface-visibility:hidden;display:flex;flex-direction:column;padding:1.75rem}
+.front{background:#FDF8EE;color:#0C1611;box-shadow:0 30px 80px -20px rgba(0,0,0,.75),0 0 0 1px rgba(194,167,122,.28) inset}
+.back{background:#0C1611;color:#F9F5EB;transform:rotateY(180deg);box-shadow:0 30px 80px -20px rgba(0,0,0,.8),0 0 0 1px rgba(194,167,122,.22) inset;background-image:linear-gradient(to bottom right,rgba(23,53,33,.6),#0C1611,#1a2a1f)}
+.mark{font-family:Georgia,serif;font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.gold{height:2px;width:40px;background:#14532D;margin:.5rem 0}
+.name{font-family:Georgia,serif;font-size:40px;font-weight:600;line-height:.95;letter-spacing:-.03em;margin:1.5rem 0 .35rem}
+.name-en{font-size:13px;opacity:.5;font-style:italic}
+.role{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.6;margin-top:1.25rem}
+.org{font-size:13.5px;font-weight:500;margin-top:.5rem;line-height:1.35}
+.tagline{font-size:13px;line-height:1.5;opacity:.8;margin-top:auto;padding-top:1.5rem;border-top:1px solid rgba(12,22,17,.1)}
+.tagline strong{color:#14532D}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.85rem}
+.chip{font-size:11px;padding:.35rem .65rem;border-radius:999px;background:rgba(12,22,17,.06);border:1px solid rgba(12,22,17,.1);color:rgba(12,22,17,.75);text-decoration:none}
+.front-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.front-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-top:auto;padding-top:1rem}
+.loc{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.4;line-height:1.45}
+.qr-front,.qr-back{width:52px;height:52px;border-radius:10px;background:#fff;padding:3px;border:1px solid rgba(12,22,17,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(12,22,17,.08);overflow:hidden}
+.qr-back{border-color:rgba(249,245,235,.15);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.qr-front img,.qr-front canvas,.qr-back img,.qr-back canvas{width:100%!important;height:100%!important;display:block;max-width:100%;max-height:100%}
+.back-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.back .sec{font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.35;margin:1.1rem 0 .55rem}
+.services{display:flex;flex-wrap:wrap;gap:.4rem}
+.services span{font-size:11px;padding:.4rem .75rem;border-radius:999px;background:rgba(249,245,235,.07);border:1px solid rgba(249,245,235,.12)}
+.rows{display:flex;flex-direction:column;gap:.65rem;margin-top:.5rem}
+.row{display:flex;align-items:center;gap:.75rem;color:rgba(249,245,235,.85);text-decoration:none;font-size:13px}
+.ico{width:36px;height:36px;border-radius:999px;background:rgba(249,245,235,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.qr-note{margin-top:auto;padding-top:1rem;font-size:10px;opacity:.4;letter-spacing:.06em;text-transform:uppercase;line-height:1.45;text-align:left}
+.actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.25rem}
+.btn{height:48px;border-radius:999px;border:0;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:inherit}
+.btn-light{background:#F9F5EB;color:#0C1611}
+.btn-ghost{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#F9F5EB}
+.btn-green{background:#14532D;color:#F9F5EB}
+.toast{position:fixed;bottom:max(24px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#F9F5EB;color:#0C1611;padding:.6rem 1rem;border-radius:999px;font-size:12px;z-index:50;opacity:0;pointer-events:none;transition:opacity .25s}
 .toast.show{opacity:1}
-.hint{font-size:11px;opacity:.4;margin-top:1.5rem;text-align:center;line-height:1.6;max-width:320px}
-a.home{color:var(--gold);text-decoration:none;font-size:12px;margin-top:1rem;opacity:.7}
+a.backlink{display:inline-block;margin-top:1.25rem;font-size:11px;opacity:.4;color:#C2A77A;text-decoration:none}
+.list-card{display:flex;align-items:center;gap:1rem;padding:1rem;border-radius:16px;background:rgba(249,245,235,.06);border:1px solid rgba(249,245,235,.12);color:inherit;text-decoration:none}
+.list-card:hover{background:rgba(249,245,235,.1)}
+.wallet-tip{margin-top:1rem;padding:.85rem 1rem;border-radius:14px;background:rgba(249,245,235,.06);border:1px solid rgba(249,245,235,.1);font-size:12px;line-height:1.5;opacity:.85}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-<div id="app"></div>
+<div class="bg"><i></i><i></i></div>
+<div class="wrap" id="app"></div>
 <div class="toast" id="toast"></div>
 <script>
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vROc_VAnbXFlbCyCAYvO4P0R6fEJgktqkNCrvShvUzgHBCv-10R5kXprgRpQFuYXM29tTXMTWp7eFXz/pub?gid=0&single=true&output=csv';
-const SITE = 'https://b-a.bambooasia.biz';
+const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vROc_VAnbXFlbCyCAYvO4P0R6fEJgktqkNCrvShvUzgHBCv-10R5kXprgRpQFuYXM29tTXMTWp7eFXz/pub?gid=0&single=true&output=csv';
+const SITE='https://b-a.bambooasia.biz';
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
 function parseCsv(text){const lines=text.replace(/^\uFEFF/,'').trim().split(/\r?\n/);if(lines.length<2)return[];const headers=lines[0].split(',').map(h=>h.trim());const rows=[];for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const cols=lines[i].split(',');const row={};headers.forEach((h,idx)=>{row[h]=(cols[idx]||'').trim()});if(row.id)rows.push(row)}return rows}
 function phoneDigits(phone){const d=String(phone||'').replace(/[^\d+]/g,'');if(d.startsWith('+'))return d;if(d.startsWith('84'))return '+'+d;return d}
+function telHref(phone){return 'tel:'+phoneDigits(phone)}
 function buildVCard(m){const name=m.name_en||m.name_kr||m.id;const nameKr=m.name_kr||name;const phone=m.phone||'+84 093 685 0555';const email=m.email||'info@bambooasia.biz';const title=m.title_en||m.title_kr||'Representative';return ['BEGIN:VCARD','VERSION:3.0','N:'+name+';;;;','FN:'+nameKr+' / '+name,'ORG:b/a · Bamboo Asia','TITLE:'+title,'TEL;TYPE=CELL:'+phoneDigits(phone),'EMAIL:'+email,'URL:'+SITE,'NOTE:Vietnam Business Execution Platform','END:VCARD'].join('\n')}
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
-function downloadVCard(m){const v=buildVCard(m);const blob=new Blob([v],{type:'text/vcard;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(m.name_en||m.id||'contact')+'.vcf';a.click();URL.revokeObjectURL(a.href);toast('vCard 저장됨 · 연락처 앱에서 열기')}
-function renderQr(el,text,px){if(!el)return;el.innerHTML='';try{if(typeof QRCode!=='undefined'){new QRCode(el,{text:text,width:px,height:px,colorDark:'#0C1611',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});return}}catch(e){}const img=document.createElement('img');img.alt='vCard QR';img.src='https://api.qrserver.com/v1/create-qr-code/?size='+px+'x'+px+'&margin=0&data='+encodeURIComponent(text);el.appendChild(img)}
-function renderCard(m){const roleLine=m.title_en?`${m.title_en} / 베트남 사업 실행 플랫폼`:m.title_kr?`${m.title_kr} / 베트남 사업 실행 플랫폼`:'Representative / 베트남 사업 실행 플랫폼';const phone=m.phone||'+84 093 685 0555';const email=m.email||'info@bambooasia.biz';const nameKr=m.name_kr||m.name_en||m.id;const nameEn=m.name_en||m.name_kr||m.id;const vcard=buildVCard(m);document.title='b/a Digital Card · '+nameKr+' · Bamboo Asia';const app=document.getElementById('app');app.innerHTML=`
-<div class="card-wrap"><div class="card" id="card">
-  <div class="face front">
-    <div class="top"><div class="logo">b/a</div><div class="qr-front" id="qrFront"></div></div>
-    <div class="name">${nameKr}</div>
-    <div class="en">${nameEn}</div>
-    <div class="role">${roleLine}</div>
-    <div class="loc">Ho Chi Minh City · Seoul<br><span style="opacity:.7;letter-spacing:.08em">Scan QR · 연락처</span></div>
-  </div>
-  <div class="face back">
-    <div class="top"><div class="logo">b/a</div></div>
-    <div class="services">
-      <div class="svc">Entry · 법인설립</div><div class="svc">Deal · M&A</div>
-      <div class="svc">Localization</div><div class="svc">Ops · 운영지원</div>
-    </div>
-    <div class="qr-wrap">
-      <div class="qr-box" id="qrBox"></div>
-      <div class="qr-label">Scan to save contact<br>vCard · 연락처 저장<br>Google / Apple</div>
-    </div>
-  </div>
-</div></div>
-<div class="actions">
-  <a class="btn btn-outline" href="tel:${phoneDigits(phone)}">전화</a>
-  <a class="btn btn-outline" href="mailto:${email}">이메일</a>
-  <button class="btn btn-green" type="button" id="vcardBtn">연락처 저장</button>
-</div>
-<p class="hint">카드를 탭하면 앞/뒤 전환<br>1) <b>연락처 저장</b> 버튼 → vCard 다운로드<br>2) 전면·후면 <b>QR 스캔</b> → 카메라로 바로 연락처 추가<br>3) Google Wallet: 저장된 QR 이미지를 Wallet → 추가 → 사진 으로도 등록 가능</p>
-<a class="home" href="/">b/a home</a>`;
-const card=document.getElementById('card');
-card.addEventListener('click',e=>{if(e.target.closest('a,button,input,.qr-box,.qr-front'))return;card.classList.toggle('flipped')});
-renderQr(document.getElementById('qrFront'), vcard, 96);
-renderQr(document.getElementById('qrBox'), vcard, 140);
-document.getElementById('vcardBtn').onclick=()=>downloadVCard(m);
+function downloadVCard(m){
+  const v=buildVCard(m);
+  const blob=new Blob([v],{type:'text/vcard;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='b-a_'+(m.name_kr||m.id||'card').replace(/\s+/g,'_')+'.vcf';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+  toast('vCard 저장됨 · 연락처 앱에서 열기');
 }
-function renderList(members){const app=document.getElementById('app');app.innerHTML=`<h1 style="font-size:1rem;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin-bottom:1.5rem">Digital Cards</h1>`+members.map(m=>`<a href="/card/${m.id}/" style="display:flex;align-items:center;gap:1rem;padding:1rem;border-radius:16px;background:rgba(249,245,235,.06);border:1px solid rgba(249,245,235,.12);color:inherit;text-decoration:none;width:100%;max-width:380px;margin-bottom:.75rem"><div style="width:40px;height:40px;border-radius:10px;background:#F9F5EB;color:#0C1611;display:flex;align-items:center;justify-content:center;font-weight:700">b/a</div><div style="flex:1"><div style="font-weight:600">${m.name_kr||m.name_en}</div><div style="font-size:12px;opacity:.55">${m.name_en||''}</div><div style="font-size:11px;opacity:.45;margin-top:2px">${m.title_kr||m.title_en||''}</div></div><div style="opacity:.4">→</div></a>`).join('')+`<p style="opacity:.35;font-size:11px;margin-top:2rem"><a href="/" style="color:#C2A77A">b/a home</a></p>`}
-async function main(){const path=location.pathname.replace(/\/+$/,'').split('/');const id=path[path.length-1]==='card'?null:path[path.length-1];let members=[];try{const res=await fetch(CSV_URL);if(res.ok)members=parseCsv(await res.text())}catch(e){}if(!members.length)members=[{id:'taehoon',name_kr:'김태훈',name_en:'Taehoon Kim',title_kr:'대표',title_en:'Representative',phone:'+84 093 685 0555',email:'kim@bambooasia.biz'},{id:'magnox',name_kr:'정성영',name_en:'Seongyoung Jeong',title_kr:'팀장',title_en:'Team Manager',phone:'+84 093 896 7541',email:'magnox@bambooasia.biz'}];if(id&&id!=='card'){const m=members.find(x=>x.id===id)||members[0];renderCard(m)}else{renderList(members)}}
+function renderQr(el, text, size){
+  if(!el)return;
+  el.innerHTML='';
+  const px=size||88;
+  try{
+    if(typeof QRCode!=='undefined'){
+      new QRCode(el,{
+        text:text,
+        width:px,
+        height:px,
+        colorDark:'#0C1611',
+        colorLight:'#F9F5EB',
+        correctLevel:QRCode.CorrectLevel.M
+      });
+    }else{
+      const img=document.createElement('img');
+      img.alt='vCard QR';
+      img.src='https://api.qrserver.com/v1/create-qr-code/?size='+px+'x'+px+'&margin=0&data='+encodeURIComponent(text);
+      el.appendChild(img);
+    }
+  }catch(e){
+    el.textContent='QR';
+  }
+}
+function renderList(members){
+  document.title='b/a Digital Cards · Bamboo Asia';
+  document.getElementById('app').innerHTML=`
+    <header><div class="brand"><div class="logo">b/a</div><div><small>Bamboo Asia</small><small style="opacity:.35">Digital Cards</small></div></div></header>
+    <p class="hint">멤버 선택</p>
+    <div style="display:flex;flex-direction:column;gap:.75rem;width:100%">
+      ${members.map(m=>`<a class="list-card" href="/card/${m.id}/"><div class="logo">b/a</div><div style="flex:1"><div style="font-weight:600">${m.name_kr||m.name_en||m.id}</div><div style="font-size:12px;opacity:.55">${m.name_en||''}</div><div style="font-size:11px;opacity:.4;margin-top:2px">${m.title_kr||m.title_en||''}</div></div><div style="opacity:.4">→</div></a>`).join('')}
+    </div>
+    <a class="backlink" href="/">← b/a home</a>`;
+}
+function renderCard(m){
+  const role=m.title_en?`${m.title_en} / 베트남 사업 실행 플랫폼`:m.title_kr?`${m.title_kr} / 베트남 사업 실행 플랫폼`:'Representative / 베트남 사업 실행 플랫폼';
+  const vcard=buildVCard(m);
+  document.title='b/a Digital Card · '+(m.name_kr||m.name_en||m.id)+' · Bamboo Asia';
+  document.getElementById('app').innerHTML=`
+    <header>
+      <div class="brand"><div class="logo">b/a</div><div><small>Bamboo Asia · 2025</small><small style="opacity:.35">b-a.bambooasia.biz</small></div></div>
+    </header>
+    <p class="hint">Tap card to flip · 뒤집기</p>
+    <div class="stage"><div class="flip" id="flip">
+      <div class="face front">
+        <div class="front-head">
+          <div>
+            <div class="mark">[ b/a ]</div>
+            <div class="gold"></div>
+            <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;opacity:.4">Bamboo Asia · Est. 2025</div>
+          </div>
+          <div class="qr-front" id="qrFront" title="Scan to save contact"></div>
+        </div>
+        <div class="name">${m.name_kr||m.name_en||''}</div>
+        <div class="name-en">${m.name_en||''}</div>
+        <div class="role">${role}</div>
+        <div class="org">b/a Bamboo Asia<br><span style="opacity:.6;font-weight:400;font-size:12px">Vietnam Business Execution Platform</span></div>
+        <div class="tagline">베트남 진출의 모든 과정을<br><strong>하나의 파트너</strong>와 함께</div>
+        <div class="chips">
+          <a class="chip" href="${telHref(m.phone)}">${m.phone||''}</a>
+          <a class="chip" href="mailto:${m.email||''}">${m.email||''}</a>
+        </div>
+        <div class="front-foot">
+          <div class="loc">Ho Chi Minh City · Seoul<br><span style="opacity:.7;letter-spacing:.08em">Scan QR · 연락처</span></div>
+        </div>
+      </div>
+      <div class="face back">
+        <div class="back-head">
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <div class="logo">b/a</div>
+            <div><div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.8">Bamboo Asia</div>
+            <div style="font-size:10px;opacity:.4">b-a.bambooasia.biz</div></div>
+          </div>
+          <div class="qr-back" id="qrBox" title="Scan to save contact"></div>
+        </div>
+        <div style="margin-top:1.1rem;font-family:Georgia,serif;font-size:15px">${m.name_kr||''} <span style="opacity:.5;font-size:12px;font-family:system-ui">${m.name_en||''}</span></div>
+        <div class="sec">Services</div>
+        <div class="services">
+          <span>법인설립</span><span>거래·M&A</span><span>산업별 현지화</span><span>보안·준법</span><span>운영지원</span>
+        </div>
+        <div class="sec">Contact</div>
+        <div class="rows">
+          <a class="row" href="${telHref(m.phone)}"><span class="ico">☎</span>${m.phone||''}</a>
+          <a class="row" href="mailto:${m.email||''}"><span class="ico">✉</span>${m.email||''}</a>
+          <a class="row" href="${SITE}" target="_blank" rel="noopener"><span class="ico">🌐</span>b-a.bambooasia.biz</a>
+        </div>
+        <div class="qr-note">Scan QR · vCard · 연락처 저장<br>Google / Apple Wallet</div>
+      </div>
+    </div></div>
+    <div class="actions">
+      <a class="btn btn-light" href="${telHref(m.phone)}">전화하기</a>
+      <a class="btn btn-ghost" href="mailto:${m.email||''}">이메일</a>
+      <button class="btn btn-green" type="button" id="vcardBtn">연락처 저장</button>
+      <button class="btn btn-ghost" type="button" id="shareBtn">공유하기</button>
+    </div>
+    <div class="actions" style="margin-top:.75rem">
+      <button class="btn btn-ghost" type="button" id="copyBtn" style="height:44px">링크 복사</button>
+      <a class="btn btn-ghost" href="${SITE}" target="_blank" rel="noopener" style="height:44px">웹사이트</a>
+    </div>
+    <div class="wallet-tip">
+      <strong>Google Wallet / 연락처</strong><br>
+      1) <b>연락처 저장</b> → .vcf 파일을 열어 주소록에 추가<br>
+      2) 전면·후면 <b>QR 스캔</b> → 카메라로 바로 연락처 추가<br>
+      3) Google Wallet: 저장된 QR 이미지를 Wallet → 추가 → 사진 으로도 등록 가능
+    </div>
+    <a class="backlink" href="/card/">← 멤버 목록</a>`;
+  const flip=document.getElementById('flip');
+  flip.addEventListener('click',(e)=>{
+    if(e.target.closest('a,button,input,.qr-front,.qr-back'))return;
+    flip.classList.toggle('on');
+  });
+  renderQr(document.getElementById('qrFront'), vcard, 88);
+  renderQr(document.getElementById('qrBox'), vcard, 88);
+  document.getElementById('vcardBtn').onclick=()=>downloadVCard(m);
+  document.getElementById('copyBtn').onclick=async()=>{
+    const url=`${SITE}/card/${m.id}/`;
+    try{await navigator.clipboard.writeText(url);}catch{}
+    toast('링크 복사됨');
+  };
+  document.getElementById('shareBtn').onclick=async()=>{
+    const url=`${SITE}/card/${m.id}/`;
+    try{
+      if(navigator.share){
+        await navigator.share({
+          title:`b/a · ${m.name_kr||m.name_en}`,
+          text:`${m.name_kr||m.name_en} · ${m.title_kr||m.title_en||''} · Bamboo Asia`,
+          url
+        });
+      }else{
+        await navigator.clipboard.writeText(url);
+      }
+    }catch{}
+  };
+}
+async function main(){
+  const path=location.pathname.replace(/\/+$/,'').split('/');
+  const id=path[path.length-1]==='card'?null:path[path.length-1];
+  let members=[];
+  try{
+    const res=await fetch(CSV_URL);
+    if(res.ok)members=parseCsv(await res.text());
+  }catch(e){}
+  if(!members.length)members=[
+    {id:'taehoon',name_kr:'김태훈',name_en:'Taehoon Kim',title_kr:'대표',title_en:'Representative',phone:'+84 093 685 0555',email:'kim@bambooasia.biz'},
+    {id:'magnox',name_kr:'정성영',name_en:'Seongyoung Jeong',title_kr:'팀장',title_en:'Team Manager',phone:'+84 093 896 7541',email:'magnox@bambooasia.biz'}
+  ];
+  if(id&&id!=='card'){
+    const m=members.find(x=>x.id===id)||members[0];
+    renderCard(m);
+  }else{
+    renderList(members);
+  }
+}
 main();
 </script>
 </body>
