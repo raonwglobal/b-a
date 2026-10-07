@@ -16,11 +16,11 @@ body{background:#0C1611;color:#F9F5EB;display:flex;flex-direction:column;align-i
 .wrap{position:relative;z-index:1;width:100%;max-width:420px;padding:max(20px,env(safe-area-inset-top)) 1.25rem 2rem}
 header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
 .brand{display:flex;align-items:center;gap:.75rem}
-.logo{width:30px;height:30px;border-radius:10px;background:#F9F5EB;color:#0C1611;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.logo{width:30px;height:30px;border-radius:10px;background:#F9F5EB;color:#0C1611;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
 .brand small{display:block;font-size:10px;letter-spacing:.18em;text-transform:uppercase;opacity:.55}
 .hint{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.4;text-align:center;margin:0 0 1rem}
 .stage{perspective:1600px;width:100%}
-.flip{position:relative;width:100%;min-height:640px;transition:transform .9s;transform-style:preserve-3d;cursor:pointer}
+.flip{position:relative;width:100%;min-height:640px;transition:transform .9s cubic-bezier(.4,.0,.2,1);transform-style:preserve-3d;cursor:pointer}
 .flip.on{transform:rotateY(180deg)}
 .face{position:absolute;inset:0;border-radius:32px;overflow:hidden;backface-visibility:hidden;display:flex;flex-direction:column;padding:1.75rem}
 .front{background:#FDF8EE;color:#0C1611;box-shadow:0 30px 80px -20px rgba(0,0,0,.75),0 0 0 1px rgba(194,167,122,.28) inset}
@@ -41,7 +41,11 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 .services span{font-size:11px;padding:.4rem .75rem;border-radius:999px;background:rgba(249,245,235,.07);border:1px solid rgba(249,245,235,.12)}
 .rows{display:flex;flex-direction:column;gap:.65rem;margin-top:.5rem}
 .row{display:flex;align-items:center;gap:.75rem;color:rgba(249,245,235,.85);text-decoration:none;font-size:13px}
-.ico{width:36px;height:36px;border-radius:999px;background:rgba(249,245,235,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:14px}
+.ico{width:36px;height:36px;border-radius:999px;background:rgba(249,245,235,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.qr-wrap{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;padding-top:1rem}
+.qr{width:72px;height:72px;border-radius:10px;background:#F9F5EB;padding:6px;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);gap:2px}
+.qr b{background:#0C1611;border-radius:1px}
+.qr-label{font-size:10px;opacity:.4;letter-spacing:.08em;text-transform:uppercase;text-align:right;line-height:1.4}
 .actions{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:1.25rem}
 .btn{height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:.5rem;font-size:13px;font-weight:500;text-decoration:none;border:0;cursor:pointer;color:inherit;font:inherit}
 .btn-light{background:#F9F5EB;color:#0C1611}
@@ -51,6 +55,8 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 .toast.on{opacity:1}
 .err{padding:2rem;text-align:center;opacity:.7}
 a.backlink{display:inline-block;margin-top:1.25rem;font-size:11px;opacity:.4;color:#C2A77A;text-decoration:none}
+.list-card{display:flex;align-items:center;gap:1rem;padding:1rem;border-radius:16px;background:rgba(249,245,235,.06);border:1px solid rgba(249,245,235,.12);color:inherit;text-decoration:none}
+.list-card:hover{background:rgba(249,245,235,.1)}
 </style>
 </head>
 <body>
@@ -92,13 +98,22 @@ function memberId(){
   if(i>=0&&parts[i+1])return parts[i+1];
   return null;
 }
+function qrGrid(){
+  const cells=[];
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){
+    const on=(r===0||r===4||c===0||c===4||(r>1&&r<3&&c>1&&c<3)||((r+c)%3===0));
+    cells.push(on?'<b></b>':'<i></i>');
+  }
+  return cells.join('');
+}
 function renderList(members){
   document.title='b/a Digital Cards · Bamboo Asia';
   document.getElementById('app').innerHTML=`
     <header><div class="brand"><div class="logo">b/a</div><div><small>Bamboo Asia</small><small style="opacity:.35">Digital Cards</small></div></div></header>
+    <p class="hint">멤버 선택</p>
     <div style="display:flex;flex-direction:column;gap:.75rem;width:100%">
       ${members.map(m=>`
-        <a href="/card/${m.id}/" style="display:flex;align-items:center;gap:1rem;padding:1rem;border-radius:16px;background:rgba(249,245,235,.06);border:1px solid rgba(249,245,235,.12);color:inherit;text-decoration:none">
+        <a class="list-card" href="/card/${m.id}/">
           <div class="logo">b/a</div>
           <div style="flex:1"><div style="font-weight:600">${m.name_kr||m.name_en}</div>
           <div style="font-size:12px;opacity:.5">${m.name_en||''}</div>
@@ -147,8 +162,11 @@ function renderCard(m){
         <div class="rows">
           <a class="row" href="${telHref(m.phone)}"><span class="ico">☎</span>${m.phone||''}</a>
           <a class="row" href="mailto:${m.email||''}"><span class="ico">✉</span>${m.email||''}</a>
-          <div class="row"><span class="ico">◎</span>Ho Chi Minh City · Seoul</div>
           <a class="row" href="${SITE}" target="_blank" rel="noopener"><span class="ico">🌐</span>b-a.bambooasia.biz</a>
+        </div>
+        <div class="qr-wrap">
+          <div class="qr">${qrGrid()}</div>
+          <div class="qr-label">Scan · 연락처<br>b/a card</div>
         </div>
       </div>
     </div></div>
