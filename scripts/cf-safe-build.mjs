@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 /**
- * b-a static build — recovers UI from git history when full-page.html is PLACEHOLDER.
- * Applies CTA label (상담하기) and header btn-cta vertical alignment.
- * Builds digital cards at /card/ (not in main nav).
+ * b-a static build — recovers UI from gz.b64 / part*.b64 / git history.
+ * Applies CTA 상담하기 + btn-cta alignment. Builds /card/ digital cards.
  */
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { buildDigitalCards } from './build-digital-cards.mjs';
 
 const root = process.cwd();
 const outDir = join(root, 'out');
-const FULL = join(root, 'scripts', 'full-page.html');
-const I18N = join(root, 'scripts', 'i18n.js');
-const FULL_GZ_B64 = join(root, 'scripts', 'full-page.html.gz.b64');
+const scriptsDir = join(root, 'scripts');
+const FULL = join(scriptsDir, 'full-page.html');
+const I18N = join(scriptsDir, 'i18n.js');
+const FULL_GZ_B64 = join(scriptsDir, 'full-page.html.gz.b64');
 
 console.log('[cf-safe-build] consulting UI');
 
@@ -23,6 +23,25 @@ function writeOut(rel, content) {
   ensureDir(dirname(p));
   writeFileSync(p, content, 'utf8');
   console.log('[cf-safe-build] wrote', rel, `(${Buffer.byteLength(content)}b)`);
+}
+
+function loadJoinedParts(prefix) {
+  const parts = readdirSync(scriptsDir)
+    .filter((f) => new RegExp(`^${prefix}\\.part\\d+\\.b64$`).test(f))
+    .sort();
+  if (!parts.length) return null;
+  try {
+    const b64 = parts.map((f) => readFileSync(join(scriptsDir, f), 'utf8')).join('').replace(/\s+/g, '');
+    const buf = gunzipSync(Buffer.from(b64, 'base64'));
+    const text = buf.toString('utf8');
+    if (text && text.length > 500) {
+      console.log(`[cf-safe-build] loaded ${prefix} from ${parts.length} parts (${text.length}b)`);
+      return text;
+    }
+  } catch (e) {
+    console.warn(`[cf-safe-build] ${prefix} parts failed`, e.message);
+  }
+  return null;
 }
 
 function scrub(text) {
@@ -45,7 +64,7 @@ function scrub(text) {
 async function loadFullPage() {
   if (existsSync(FULL)) {
     const html = readFileSync(FULL, 'utf8');
-    const bad = !html || html.trim() === 'PLACEHOLDER' || html.length < 500;
+    const bad = !html || html.includes('PLACEHOLDER') || html.length < 500;
     if (!bad) {
       console.log('[cf-safe-build] loaded full-page.html');
       return html;
@@ -64,6 +83,8 @@ async function loadFullPage() {
       console.warn('[cf-safe-build] gz failed', e.message);
     }
   }
+  const fromParts = loadJoinedParts('full-page');
+  if (fromParts) return fromParts;
   const histUrl = 'https://raw.githubusercontent.com/raonwglobal/b-a/0a7663be/scripts/full-page.html';
   console.log('[cf-safe-build] fetching recovery UI from git history');
   const res = await fetch(histUrl);
@@ -74,20 +95,37 @@ async function loadFullPage() {
   return html;
 }
 
+function loadI18n() {
+  if (existsSync(I18N)) {
+    const t = readFileSync(I18N, 'utf8');
+    if (t.length > 15000 && t.includes('"VI"') && t.includes('footer_brand')) {
+      console.log('[cf-safe-build] loaded i18n.js');
+      return t;
+    }
+    console.warn('[cf-safe-build] i18n.js incomplete, trying parts');
+  }
+  const fromParts = loadJoinedParts('i18n');
+  if (fromParts) return fromParts;
+  return null;
+}
+
 async function main() {
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   ensureDir(outDir);
   const raw = await loadFullPage();
   const html = scrub(raw);
   writeOut('index.html', html);
-  if (existsSync(I18N)) {
-    let i18n = readFileSync(I18N, 'utf8')
+  let i18n = loadI18n();
+  if (i18n) {
+    i18n = i18n
       .replaceAll('"ctaTop": "실행 상담하기"', '"ctaTop": "상담하기"')
       .replaceAll('"heroCTA1": "실행 상담하기"', '"heroCTA1": "상담하기"');
     writeOut('i18n.js', i18n);
+  } else {
+    console.warn('[cf-safe-build] no i18n available');
   }
   writeOut('404.html', '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>');
-  console.log('[cf-safe-build] done | EXECUTION=', html.includes('EXECUTION'));
+  console.log('[cf-safe-build] done | EXECUTION=', html.includes('EXECUTION'), '| footerBrand=', html.includes('footerBrand'));
   try {
     const card = await buildDigitalCards();
     console.log('[cf-safe-build] digital cards', card);
