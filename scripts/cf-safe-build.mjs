@@ -1,16 +1,7 @@
 #!/usr/bin/env node
 /**
- * b-a static build
- *
- * UI source priority:
- *  1) scripts/full-page.html  — if it is the full React artifact (contains Bc.createRoot)
- *  2) scripts/ba.partNN.b64   — gzip shards of the React artifact (optional)
- *  3) scripts/full-page.html  — simplified page + zip footer inject
- *  4) BA_UI_URL env           — fetch full HTML at build time (optional)
- *
- * To install the attached B-A-Execution-Platform.html UI:
- *   node scripts/install-artifact.mjs path/to/B-A-Execution-Platform.html
- *   git add scripts/full-page.html && git commit && git push
+ * b-a static build — recovers UI from git history when full-page.html is PLACEHOLDER.
+ * Applies CTA label (상담하기) and header btn-cta vertical alignment.
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -20,49 +11,7 @@ const root = process.cwd();
 const outDir = join(root, 'out');
 const FULL = join(root, 'scripts', 'full-page.html');
 const I18N = join(root, 'scripts', 'i18n.js');
-
-const ZIP_FOOTER_CSS = `
-.site-footer{background:#fff;border-top:1px solid rgba(0,0,0,.05)}
-.footer-top{padding:40px 0;display:flex;flex-direction:column;gap:32px}
-@media(min-width:1024px){.footer-top{flex-direction:row;justify-content:space-between;align-items:flex-start}}
-.ftag{font-size:10px;padding:4px 8px;border-radius:999px;background:#F3F4F6;border:1px solid rgba(0,0,0,.05);font-weight:500}
-.footer-cols{display:grid;grid-template-columns:1fr 1fr;gap:32px;font-size:12.5px}
-@media(min-width:640px){.footer-cols{grid-template-columns:repeat(3,1fr)}}
-.fcol-title{font-weight:700;color:#101828}
-.fcol-list{margin-top:12px;display:flex;flex-direction:column;gap:8px;color:#667085}
-.footer-bot{height:48px;border-top:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:#98A2B3}
-`;
-
-const ZIP_FOOTER = `
-<footer class="site-footer">
-  <div class="wrap footer-top">
-    <div class="footer-brand">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="logo-box">b/a</div>
-        <span style="font-size:13px;font-weight:600">베트남 사업 실행 플랫폼</span>
-      </div>
-      <p style="margin-top:12px;font-size:12.5px;line-height:1.6;color:#667085;max-width:36ch">시장조사부터 법인설립, 거래, 현지화, 운영까지. 빠르고 안전한 베트남 사업 진입을 위한 실행 플랫폼.</p>
-      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
-        <span class="ftag">PMO</span><span class="ftag">VDR</span><span class="ftag">Compliance</span>
-      </div>
-    </div>
-    <div class="footer-cols">
-      <div><div class="fcol-title">서비스</div><div class="fcol-list">
-        <a href="#svc">진출 실행지원</a><a href="#deal">거래·M&A</a><a href="#industry">산업별 현지화</a><a href="#security">보안·준법</a><a href="#operation">운영지원</a>
-      </div></div>
-      <div><div class="fcol-title">플랫폼</div><div class="fcol-list">
-        <a href="#process">이용 절차</a><a href="#plans">서비스 상품</a><a href="#svc">검증 원칙</a><a href="#security">보안 정책</a>
-      </div></div>
-      <div><div class="fcol-title">Contact</div><div class="fcol-list">
-        <a href="#inquiry">실행 상담하기</a><a href="mailto:info@bambooasia.biz">info@bambooasia.biz</a><span>Vietnam · Korea</span>
-      </div></div>
-    </div>
-  </div>
-  <div class="wrap footer-bot">
-    <span>© <span id="year"></span> b/a — Vietnam Business Execution Platform. All rights reserved.</span>
-    <span style="font-family:ui-monospace,monospace">Built as secure execution platform · Not a consulting brochure</span>
-  </div>
-</footer>`;
+const FULL_GZ_B64 = join(root, 'scripts', 'full-page.html.gz.b64');
 
 console.log('[cf-safe-build] consulting UI');
 
@@ -73,84 +22,73 @@ function writeOut(rel, content) {
   writeFileSync(p, content, 'utf8');
   console.log('[cf-safe-build] wrote', rel, `(${Buffer.byteLength(content)}b)`);
 }
+
 function scrub(text) {
-  return text
+  let out = text
     .replaceAll('info@bambooasia.biz (예시)', 'info@bambooasia.biz')
-    .replaceAll('hello@b-a.kr (예시)', 'info@bambooasia.biz')
-    .replaceAll('hello@b-a.kr', 'info@bambooasia.biz')
-    .replaceAll('contact@b-a.asia', 'info@bambooasia.biz');
-}
-function isReactArtifact(html) {
-  return html.includes('Bc.createRoot') || html.includes('createRoot') && html.includes('EXECUTION');
-}
-function loadBaParts() {
-  const dir = join(root, 'scripts');
-  if (!existsSync(dir)) return null;
-  const parts = readdirSync(dir)
-    .filter((f) => /^ba\.part\d+\.b64$/.test(f))
-    .sort((a, b) => Number(a.match(/part(\d+)/)[1]) - Number(b.match(/part(\d+)/)[1]));
-  if (parts.length < 8) return null;
-  const b64 = parts.map((f) => readFileSync(join(dir, f), 'utf8')).join('').replace(/\s+/g, '');
-  try {
-    const html = gunzipSync(Buffer.from(b64, 'base64')).toString('utf8');
-    if (isReactArtifact(html)) {
-      console.log('[cf-safe-build] loaded React UI from ba.part*.b64 (' + parts.length + ')');
-      return html;
-    }
-  } catch (e) {
-    console.warn('[cf-safe-build] ba.parts decode failed', e.message);
-  }
-  return null;
-}
-async function loadFromUrl() {
-  const url = process.env.BA_UI_URL;
-  if (!url) return null;
-  console.log('[cf-safe-build] fetching BA_UI_URL', url);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('BA_UI_URL fetch failed ' + res.status);
-  const html = await res.text();
-  if (!isReactArtifact(html) && !html.includes('EXECUTION')) {
-    console.warn('[cf-safe-build] BA_UI_URL content looks incomplete');
-  }
-  return html;
-}
-function applyZipFooter(html) {
-  if (isReactArtifact(html)) return html; // artifact already has full footer
-  let out = html;
-  if (!out.includes('footer-cols') && out.includes('</style>')) {
-    out = out.replace('</style>', ZIP_FOOTER_CSS + '\n</style>');
-  }
-  if (out.includes('<footer')) out = out.replace(/<footer[\s\S]*?<\/footer>/, ZIP_FOOTER);
+    .replaceAll('hello@b-a.asia (예시)', 'info@bambooasia.biz')
+    .replaceAll('hello@b-a.asia', 'info@bambooasia.biz')
+    .replaceAll('contact@b-a.asia', 'info@bambooasia.biz')
+    .replaceAll('>실행 상담하기<', '>상담하기<')
+    .replaceAll('>실행 상담하기 →<', '>상담하기 →<')
+    .replaceAll('"ctaTop": "실행 상담하기"', '"ctaTop": "상담하기"')
+    .replaceAll('"heroCTA1": "실행 상담하기"', '"heroCTA1": "상담하기"');
+  out = out.replace(
+    '.btn-cta{height:40px;padding:0 1.1rem;border-radius:999px;background:#16A34A;color:#fff;border:0;font-size:13px;font-weight:600}',
+    '.btn-cta{height:40px;padding:0 1.1rem;border-radius:999px;background:#16A34A;color:#fff;border:0;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;line-height:1;white-space:nowrap}'
+  );
   return out;
 }
+
+function isReactArtifact(html) {
+  return html.includes('Bc.createRoot') || (html.includes('createRoot') && html.includes('EXECUTION'));
+}
+
 async function loadFullPage() {
   if (existsSync(FULL)) {
     const html = readFileSync(FULL, 'utf8');
-    if (isReactArtifact(html) || statSync(FULL).size > 100000) {
-      console.log('[cf-safe-build] loaded React artifact from full-page.html');
+    const bad = !html || html.trim() === 'PLACEHOLDER' || html.length < 500;
+    if (!bad) {
+      console.log('[cf-safe-build] loaded full-page.html');
       return html;
     }
+    console.warn('[cf-safe-build] full-page.html invalid, recovering');
   }
-  const fromParts = loadBaParts();
-  if (fromParts) return fromParts;
-  const fromUrl = await loadFromUrl();
-  if (fromUrl) return fromUrl;
-  if (existsSync(FULL)) {
-    console.log('[cf-safe-build] loaded simplified full-page.html');
-    return readFileSync(FULL, 'utf8');
+  if (existsSync(FULL_GZ_B64)) {
+    try {
+      const b64 = readFileSync(FULL_GZ_B64, 'utf8').replace(/\s+/g, '');
+      const html = gunzipSync(Buffer.from(b64, 'base64')).toString('utf8');
+      if (html && html.length > 1000) {
+        console.log('[cf-safe-build] loaded gz.b64');
+        return html;
+      }
+    } catch (e) {
+      console.warn('[cf-safe-build] gz failed', e.message);
+    }
   }
-  return null;
+  const histUrl = 'https://raw.githubusercontent.com/raonwglobal/b-a/0a7663be/scripts/full-page.html';
+  console.log('[cf-safe-build] fetching recovery UI from git history');
+  const res = await fetch(histUrl);
+  if (!res.ok) throw new Error('history fetch failed ' + res.status);
+  const html = await res.text();
+  if (!html || html.length < 1000) throw new Error('history UI empty');
+  console.log('[cf-safe-build] recovered from 0a7663be (' + html.length + ' bytes)');
+  return html;
 }
 
 async function main() {
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   ensureDir(outDir);
   const raw = await loadFullPage();
-  if (!raw) { console.error('[cf-safe-build] FATAL: no UI source'); process.exit(1); }
-  const html = applyZipFooter(scrub(raw));
+  const html = scrub(raw);
   writeOut('index.html', html);
-  if (existsSync(I18N)) writeOut('i18n.js', readFileSync(I18N, 'utf8'));
+  if (existsSync(I18N)) {
+    let i18n = readFileSync(I18N, 'utf8')
+      .replaceAll('"ctaTop": "실행 상담하기"', '"ctaTop": "상담하기"')
+      .replaceAll('"heroCTA1": "실행 상담하기"', '"heroCTA1": "상담하기"');
+    writeOut('i18n.js', i18n);
+  }
   writeOut('404.html', '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>');
-  console.log('[cf-safe-build] done | react=', isReactArtifact(html), '| EXECUTION=', html.includes('EXECUTION'));
+  console.log('[cf-safe-build] done | EXECUTION=', html.includes('EXECUTION'));
 }
 main().catch((e) => { console.error(e); process.exit(1); });
