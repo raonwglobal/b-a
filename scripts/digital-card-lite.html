@@ -35,13 +35,13 @@ header{display:flex;align-items:center;justify-content:space-between;margin-bott
 .tagline strong{color:#14532D}
 .chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.85rem}
 .chip{font-size:11px;padding:.35rem .65rem;border-radius:999px;background:rgba(12,22,17,.06);border:1px solid rgba(12,22,17,.1);color:rgba(12,22,17,.75);text-decoration:none}
-.front-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.front-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;width:100%}
 .front-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-top:auto;padding-top:1rem}
 .loc{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.4;line-height:1.45}
-.qr-front,.qr-back{width:52px;height:52px;border-radius:10px;background:#fff;padding:3px;border:1px solid rgba(12,22,17,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 4px 14px rgba(12,22,17,.08);overflow:hidden}
-.qr-back{border-color:rgba(249,245,235,.15);box-shadow:0 4px 14px rgba(0,0,0,.25)}
-.qr-front img,.qr-front canvas,.qr-back img,.qr-back canvas{width:100%!important;height:100%!important;display:block;max-width:100%;max-height:100%;object-fit:contain}
-.back-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.qr-front,.qr-back{width:56px;height:56px;min-width:56px;min-height:56px;max-width:56px;max-height:56px;border-radius:12px;background:#fff;padding:4px;border:1px solid rgba(12,22,17,.12);display:block;flex-shrink:0;box-shadow:0 4px 14px rgba(12,22,17,.1);overflow:hidden;position:relative;box-sizing:border-box}
+.qr-back{border-color:rgba(249,245,235,.18);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.qr-front canvas,.qr-front img,.qr-back canvas,.qr-back img{position:absolute!important;top:4px!important;left:4px!important;width:calc(100% - 8px)!important;height:calc(100% - 8px)!important;max-width:none!important;max-height:none!important;object-fit:contain!important;display:block!important;margin:0!important;padding:0!important}
+.back-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;width:100%}
 .back .sec{font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.35;margin:1.1rem 0 .55rem}
 .services{display:flex;flex-wrap:wrap;gap:.4rem}
 .services span{font-size:11px;padding:.4rem .75rem;border-radius:999px;background:rgba(249,245,235,.07);border:1px solid rgba(249,245,235,.12)}
@@ -134,15 +134,35 @@ function downloadQrImage(m){
   const a=document.createElement('a');a.href=url;a.download=filename;a.target='_blank';a.rel='noopener';a.click();toast('QR 이미지 열림');
 }
 function renderQr(el,text,size){
-  if(!el)return;el.innerHTML='';const px=size||52;
-  const drawImg=()=>{const img=document.createElement('img');img.alt='QR';img.style.cssText='width:100%;height:100%;object-fit:contain';img.src='https://api.qrserver.com/v1/create-qr-code/?size='+px+'x'+px+'&margin=1&data='+encodeURIComponent(text);el.appendChild(img);};
+  if(!el)return;
+  el.innerHTML='';
+  const px=size||48;
+  el.style.width='56px';
+  el.style.height='56px';
+  el.style.minWidth='56px';
+  el.style.minHeight='56px';
+  el.style.position='relative';
+  el.style.overflow='hidden';
+  const drawImg=()=>{
+    el.innerHTML='';
+    const img=document.createElement('img');
+    img.alt='QR';
+    img.width=px;img.height=px;
+    img.style.cssText='position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);object-fit:contain;display:block';
+    img.src='https://api.qrserver.com/v1/create-qr-code/?size='+px+'x'+px+'&margin=1&data='+encodeURIComponent(text);
+    el.appendChild(img);
+  };
   try{
     if(typeof QRCode==='undefined'){drawImg();return;}
     new QRCode(el,{text:text,width:px,height:px,colorDark:'#0C1611',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});
-    const img=el.querySelector('img');const canvas=el.querySelector('canvas');
-    if(img&&img.src&&img.src.indexOf('data:image')===0){img.style.cssText='width:100%;height:100%;object-fit:contain';if(canvas)canvas.style.display='none';}
-    else if(canvas){canvas.style.cssText='width:100%;height:100%;display:block';}
-    else drawImg();
+    const canvas=el.querySelector('canvas');
+    const img=el.querySelector('img');
+    if(canvas){
+      canvas.style.cssText='position:absolute;top:4px;left:4px;width:calc(100% - 8px)!important;height:calc(100% - 8px)!important;display:block';
+      if(img)img.style.display='none';
+    }else if(img){
+      img.style.cssText='position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);object-fit:contain;display:block';
+    }else drawImg();
   }catch(e){drawImg();}
 }
 function renderList(members){
@@ -155,8 +175,8 @@ function renderCard(m){
   document.title='b/a · '+(m.name_kr||m.id);
   document.getElementById('app').innerHTML=`<header><div class="brand"><div class="logo">b/a</div><div><small>Bamboo Asia</small></div></div></header><p class="hint">Tap card to flip</p><div class="stage"><div class="flip" id="flip"><div class="face front"><div class="front-head"><div><div class="mark">[ b/a ]</div><div class="gold"></div></div><div class="qr-front" id="qrFront"></div></div><div class="name">${m.name_kr||m.name_en||''}</div><div class="name-en">${m.name_en||''}</div><div class="role">${role}</div><div class="org">b/a Bamboo Asia</div><div class="tagline">베트남 진출의 모든 과정을 <strong>하나의 파트너</strong>와 함께</div><div class="chips"><a class="chip" href="${telHref(m.phone)}">${m.phone||''}</a><a class="chip" href="mailto:${m.email||''}">${m.email||''}</a></div><div class="front-foot"><div class="loc">Ho Chi Minh City · Seoul</div></div></div><div class="face back"><div class="back-head"><div style="display:flex;gap:.75rem;align-items:center"><div class="logo">b/a</div><div><div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase">Bamboo Asia</div></div></div><div class="qr-back" id="qrBox"></div></div><div style="margin-top:1rem;font-family:Georgia,serif">${m.name_kr||''} <span style="opacity:.5;font-size:12px">${m.name_en||''}</span></div><div class="sec">Contact</div><div class="rows"><a class="row" href="${telHref(m.phone)}"><span class="ico">☎</span>${m.phone||''}</a><a class="row" href="mailto:${m.email||''}"><span class="ico">✉</span>${m.email||''}</a><a class="row" href="${SITE}" target="_blank" rel="noopener"><span class="ico">🌐</span>b-a.bambooasia.biz</a></div><div class="qr-note">Scan QR · vCard</div></div></div></div><div class="actions"><a class="btn btn-light" href="${telHref(m.phone)}">전화하기</a><a class="btn btn-ghost" href="mailto:${m.email||''}">이메일</a><button class="btn btn-green" type="button" id="vcardBtn">연락처 저장</button><button class="btn btn-ghost" type="button" id="qrSaveBtn">QR 저장</button></div><div class="actions" style="margin-top:.75rem"><button class="btn btn-ghost" type="button" id="shareBtn" style="height:44px">공유하기</button><button class="btn btn-ghost" type="button" id="copyBtn" style="height:44px">링크 복사</button></div><a class="backlink" href="/card/">← 멤버 목록</a>`;
   document.getElementById('flip').onclick=function(e){if(e.target.closest('a,button,.qr-front,.qr-back'))return;this.classList.toggle('on');};
-  renderQr(document.getElementById('qrFront'),vcard,52);
-  renderQr(document.getElementById('qrBox'),vcard,52);
+  renderQr(document.getElementById('qrFront'),vcard,48);
+  renderQr(document.getElementById('qrBox'),vcard,48);
   document.getElementById('vcardBtn').onclick=function(){downloadVCard(m);};
   document.getElementById('qrSaveBtn').onclick=function(){downloadQrImage(m);};
   document.getElementById('copyBtn').onclick=async function(){try{await navigator.clipboard.writeText(cardUrl(m.id));}catch(e){}toast('링크 복사됨');};
