@@ -120,6 +120,21 @@ export default {
       return handleContact(request, env);
     }
     if (env.ASSETS) {
+      // /card/{id} — serve static if present; else SPA with same URL (no 307 that drops id)
+      const cardMember = url.pathname.match(/^\/card\/([^/]+)\/?$/);
+      if (cardMember && !cardMember[1].includes('.')) {
+        const exact = await env.ASSETS.fetch(request);
+        if (exact.status === 200) return exact;
+        const spa = new URL('/card-spa.html', url.origin);
+        return env.ASSETS.fetch(new Request(spa.toString(), request));
+      }
+      // /card or /card/ → list page
+      if (url.pathname === '/card' || url.pathname === '/card/') {
+        const list = await env.ASSETS.fetch(request);
+        if (list.status === 200) return list;
+        const spa = new URL('/card-spa.html', url.origin);
+        return env.ASSETS.fetch(new Request(spa.toString(), request));
+      }
       return env.ASSETS.fetch(request);
     }
     return new Response('Not found', { status: 404 });
