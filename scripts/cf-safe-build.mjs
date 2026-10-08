@@ -3,8 +3,9 @@
  * MAIN SITE ONLY static build.
  * - Recovers UI from gz.b64 / part*.b64 / git history
  * - Writes out/index.html, out/i18n.js, out/404.html, out/_redirects
+ * - Copies privacy.html, terms.html
  * - Does NOT build digital cards (see build-digital-cards.mjs)
- * - Card routes: /card/:id → /card/?id=:id (302) so member id is never dropped
+ * - Card routes: /card/:id → /card/?id=:id (302)
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -60,6 +61,24 @@ function scrub(text) {
     '.btn-cta{height:40px;padding:0 1.1rem;border-radius:999px;background:#16A34A;color:#fff;border:0;font-size:13px;font-weight:600}',
     '.btn-cta{height:40px;padding:0 1.1rem;border-radius:999px;background:#16A34A;color:#fff;border:0;font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;line-height:1;white-space:nowrap}'
   );
+  if (!out.includes('href="/privacy"') && out.includes('class="f-bot"')) {
+    out = out.replace(
+      '<div class="f-bot">',
+      '<div style="margin-top:1rem;font-size:12px"><a href="/privacy" style="color:#667085;margin-right:1rem">개인정보처리방침</a><a href="/terms" style="color:#667085">이용약관</a></div>\n<div class="f-bot">'
+    );
+  }
+  if (!out.includes('name="privacy_agree"') && out.includes('id="submitBtn"')) {
+    out = out.replace(
+      '<button type="submit" class="btn-cta" id="submitBtn"',
+      '<label style="display:flex;align-items:flex-start;gap:.5rem;margin:0 0 1rem;font-size:12.5px;color:#667085;line-height:1.45;cursor:pointer"><input type="checkbox" name="privacy_agree" id="privacy_agree" required style="margin-top:.2rem;flex-shrink:0"/><span>문의 처리 및 회신을 위한 <a href="/privacy" target="_blank" rel="noopener" style="color:#16A34A">개인정보 수집·이용</a>에 동의합니다. (필수)</span></label>\n<button type="submit" class="btn-cta" id="submitBtn"'
+    );
+  }
+  if (!out.includes('Room 1104 GoldenKing') && out.includes('id="footerEmail"')) {
+    out = out.replace(
+      '<p style="margin:.55rem 0 0;font-size:12.5px;color:#667085"><a id="footerEmail"',
+      '<p style="margin:.55rem 0 0;font-size:12px;color:#98A2B3">bambooasia ([ b/a ] 컨설팅 그룹) · 대표 김태훈 · Room 1104 GoldenKing · HCMC · Vietnam</p>\n<p style="margin:.55rem 0 0;font-size:12.5px;color:#667085"><a id="footerEmail"'
+    );
+  }
   return out;
 }
 
@@ -163,11 +182,22 @@ async function main() {
     ].join('\n')
   );
 
+  for (const name of ['privacy.html', 'terms.html']) {
+    const src = join(scriptsDir, name);
+    if (existsSync(src)) {
+      writeOut(name, readFileSync(src, 'utf8'));
+    } else {
+      console.warn('[cf-safe-build] missing', name);
+    }
+  }
+
   console.log(
     '[cf-safe-build] done | EXECUTION=',
     html.includes('EXECUTION'),
     '| footerBrand=',
     html.includes('footerBrand'),
+    '| privacy=',
+    html.includes('href="/privacy"'),
     '| (cards: run build-digital-cards.mjs separately)'
   );
 }
