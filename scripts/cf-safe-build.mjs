@@ -4,7 +4,7 @@
  * - Recovers UI from gz.b64 / part*.b64 / git history
  * - Writes out/index.html, out/i18n.js, out/404.html, out/_redirects
  * - Does NOT build digital cards (see build-digital-cards.mjs)
- * - Card routes: SPA fallback via _redirects → /card/index.html
+ * - Card routes: SPA fallback via _redirects → /card-spa.html (outside /card/)
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -153,11 +153,16 @@ async function main() {
     '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>'
   );
 
+  // Cloudflare rejects `/card/* → /card/index.html` (infinite loop after
+  // stripping .html /index). Destination must sit OUTSIDE /card/.
+  // /card/:id matches a single segment only (byeonggyu, not nested assets).
   writeOut(
     '_redirects',
     [
-      '# Digital card SPA — any /card/{id}/ serves lite SPA (CSV at runtime)',
-      '/card/*  /card/index.html  200',
+      '# Digital card SPA fallback — new CSV ids without rebuild',
+      '# Destination is outside /card/ to avoid CF infinite-loop (code 100324)',
+      '/card/:id   /card-spa.html  200',
+      '/card/:id/  /card-spa.html  200',
       '',
     ].join('\n')
   );
