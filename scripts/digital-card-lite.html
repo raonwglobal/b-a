@@ -74,264 +74,98 @@ const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vROc_VAnbXFlbCyCA
 const SITE='https://b-a.bambooasia.biz';
 const FALLBACK=[
   {id:'taehoon',name_kr:'김태훈',name_en:'Taehoon Kim',title_kr:'대표',title_en:'Representative',phone:'+84 093 685 0555',email:'kim@bambooasia.biz'},
-  {id:'magnox',name_kr:'정성영',name_en:'Seongyoung Jeong',title_kr:'팀장',title_en:'Team Manager',phone:'+84 093 896 7541',email:'magnox@bambooasia.biz'}
+  {id:'magnox',name_kr:'정성영',name_en:'Seongyoung Jeong',title_kr:'팀장',title_en:'Team Manager',phone:'+84 093 896 7541',email:'magnox@bambooasia.biz'},
+  {id:'byeonggyu',name_kr:'임병규',name_en:'Byeonggyu Lim',title_kr:'이사',title_en:'General Project Manager',phone:'+84 078 449 0386',email:'lim@bambooasia.biz'}
 ];
 function parseCsv(text){
   const lines=text.replace(/^\uFEFF/,'').trim().split(/\r?\n/);
-  if(lines.length<2)return[];
+  if(lines.length<2)return [];
   const headers=lines[0].split(',').map(h=>h.trim());
-  const rows=[];
-  for(let i=1;i<lines.length;i++){
-    if(!lines[i].trim())continue;
-    const cols=lines[i].split(',');
-    const row={};
-    headers.forEach((h,idx)=>{row[h]=(cols[idx]||'').trim()});
-    if(row.id)rows.push(row);
-  }
-  return rows;
+  return lines.slice(1).filter(Boolean).map(line=>{
+    const cols=line.split(',');const row={};
+    headers.forEach((h,i)=>row[h]=(cols[i]||'').trim());
+    return row;
+  }).filter(r=>r.id);
 }
-function phoneDigits(phone){
-  const d=String(phone||'').replace(/[^\d+]/g,'');
-  if(d.startsWith('+'))return d;
-  if(d.startsWith('84'))return '+'+d;
-  return d;
+function telHref(phone){
+  let d=String(phone||'').replace(/[^\d+]/g,'');
+  if(!d.startsWith('+')&&d.startsWith('84'))d='+'+d;
+  return 'tel:'+d;
 }
-function telHref(phone){return 'tel:'+phoneDigits(phone)}
+function phoneDigits(phone){return telHref(phone).replace('tel:','');}
 function toast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg;el.classList.add('on');
   setTimeout(()=>el.classList.remove('on'),2200);
 }
 function memberId(){
+  if(typeof window.__CARD_ID__==='string'&&window.__CARD_ID__)return window.__CARD_ID__;
   const q=new URLSearchParams(location.search).get('id');
-  if(q)return q;
-  const path=location.pathname.replace(/\/+$/,'').split('/');
-  const last=path[path.length-1];
-  return (last&&last!=='card')?last:null;
+  if(q)return String(q).replace(/\/+$/,'').trim();
+  const parts=location.pathname.replace(/\/+$/,'').split('/').filter(Boolean);
+  const skip=new Set(['card','index.html','card-spa.html','card-spa']);
+  const i=parts.indexOf('card');
+  if(i>=0){
+    for(let j=i+1;j<parts.length;j++){
+      const seg=parts[j];
+      if(seg&&!skip.has(seg)&&!/\.html?$/i.test(seg))return seg;
+    }
+  }
+  for(let j=parts.length-1;j>=0;j--){
+    const seg=parts[j];
+    if(seg&&!skip.has(seg)&&!/\.html?$/i.test(seg))return seg;
+  }
+  return null;
 }
 function buildVCard(m){
-  const fn=(m.name_kr&&m.name_en)?(m.name_kr+' / '+m.name_en):(m.name_kr||m.name_en||m.id||'');
-  const n=m.name_en||m.name_kr||m.id||'';
-  const title=m.title_en||m.title_kr||'Representative';
-  const tel=phoneDigits(m.phone||'');
+  const fn=m.name_kr||m.name_en||m.id||'';
+  const n=m.name_kr||m.name_en||'';
+  const title=m.title_en||m.title_kr||'';
+  const tel=phoneDigits(m.phone);
   const email=m.email||'';
-  return [
-    'BEGIN:VCARD',
-    'VERSION:3.0',
-    'FN:'+fn,
-    'N:'+n+';;;;',
-    'ORG:b/a - Bamboo Asia',
-    'TITLE:'+title,
-    tel?'TEL;TYPE=CELL,VOICE:'+tel:'',
-    email?'EMAIL;TYPE=INTERNET:'+email:'',
-    'URL:'+SITE,
-    'NOTE:b/a Bamboo Asia',
-    'END:VCARD'
-  ].filter(Boolean).join('\n');
+  return ['BEGIN:VCARD','VERSION:3.0','FN:'+fn,'N:'+n+';;;;','ORG:b/a - Bamboo Asia','TITLE:'+title,tel?'TEL;TYPE=CELL:'+tel:'',email?'EMAIL:'+email:'','URL:'+SITE,'NOTE:b/a Bamboo Asia','END:VCARD'].filter(Boolean).join('\n');
 }
 function downloadVCard(m){
-  const v=buildVCard(m);
-  const blob=new Blob([v],{type:'text/vcard;charset=utf-8'});
+  const blob=new Blob([buildVCard(m)],{type:'text/vcard;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
   a.download='b-a_'+(m.name_kr||m.id||'card').replace(/\s+/g,'_')+'.vcf';
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-  toast('vCard 저장됨 · 연락처 앱에서 열기');
+  a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('vCard 저장됨');
 }
 function downloadQrImage(m){
-  const text=buildVCard(m);
-  const size=512;
+  const text=buildVCard(m);const size=512;
   const filename='b-a_QR_'+(m.name_kr||m.id||'card').replace(/\s+/g,'_')+'.png';
-  const tryCanvas=()=>{
-    const host=document.createElement('div');
-    host.style.cssText='position:fixed;left:-9999px;top:0;width:'+size+'px;height:'+size+'px';
-    document.body.appendChild(host);
-    try{
-      if(typeof QRCode==='undefined')throw new Error('no lib');
-      new QRCode(host,{
-        text:text,width:size,height:size,
-        colorDark:'#0C1611',colorLight:'#ffffff',
-        correctLevel:QRCode.CorrectLevel.L
-      });
-      const img=host.querySelector('img');
-      const canvas=host.querySelector('canvas');
-      let href=null;
-      if(img&&img.src&&img.src.indexOf('data:image')===0)href=img.src;
-      else if(canvas&&canvas.toDataURL)href=canvas.toDataURL('image/png');
-      host.remove();
-      if(!href)return false;
-      const a=document.createElement('a');
-      a.href=href;a.download=filename;a.click();
-      toast('QR 이미지 저장됨');
-      return true;
-    }catch(e){
-      host.remove();
-      return false;
-    }
-  };
-  if(tryCanvas())return;
   const url='https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&margin=8&format=png&data='+encodeURIComponent(text);
-  const a=document.createElement('a');
-  a.href=url;a.download=filename;a.target='_blank';a.rel='noopener';
-  a.click();
-  toast('QR 이미지 열림 · 길게 눌러 저장');
+  const a=document.createElement('a');a.href=url;a.download=filename;a.target='_blank';a.rel='noopener';a.click();toast('QR 이미지 열림');
 }
-function renderQr(el, text, size){
-  if(!el)return;
-  el.innerHTML='';
-  const px=size||88;
-  const drawImg=()=>{
-    el.innerHTML='';
-    const img=document.createElement('img');
-    img.alt='vCard QR';
-    img.width=px;
-    img.height=px;
-    img.style.cssText='width:100%;height:100%;display:block;object-fit:contain';
-    img.src='https://api.qrserver.com/v1/create-qr-code/?size='+px+'x'+px+'&margin=1&data='+encodeURIComponent(text);
-    el.appendChild(img);
-  };
+function renderQr(el,text,size){
+  if(!el)return;el.innerHTML='';const px=size||52;
+  const drawImg=()=>{const img=document.createElement('img');img.alt='QR';img.style.cssText='width:100%;height:100%;object-fit:contain';img.src='https://api.qrserver.com/v1/create-qr-code/?size='+px+'x'+px+'&margin=1&data='+encodeURIComponent(text);el.appendChild(img);};
   try{
     if(typeof QRCode==='undefined'){drawImg();return;}
-    new QRCode(el,{
-      text:text,
-      width:px,
-      height:px,
-      colorDark:'#0C1611',
-      colorLight:'#ffffff',
-      correctLevel:QRCode.CorrectLevel.L
-    });
-    const img=el.querySelector('img');
-    const canvas=el.querySelector('canvas');
-    if(img&&img.src&&img.src.indexOf('data:image')===0){
-      img.style.cssText='width:100%;height:100%;display:block;object-fit:contain';
-      if(canvas)canvas.style.display='none';
-    }else if(canvas&&canvas.width){
-      canvas.style.cssText='width:100%;height:100%;display:block';
-    }else{
-      drawImg();
-    }
-  }catch(e){
-    drawImg();
-  }
+    new QRCode(el,{text:text,width:px,height:px,colorDark:'#0C1611',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.L});
+    const img=el.querySelector('img');const canvas=el.querySelector('canvas');
+    if(img&&img.src&&img.src.indexOf('data:image')===0){img.style.cssText='width:100%;height:100%;object-fit:contain';if(canvas)canvas.style.display='none';}
+    else if(canvas){canvas.style.cssText='width:100%;height:100%;display:block';}
+    else drawImg();
+  }catch(e){drawImg();}
 }
 function renderList(members){
-  document.title='b/a Digital Cards · Bamboo Asia';
-  document.getElementById('app').innerHTML=`
-    <header><div class="brand"><div class="logo">b/a</div><div><small>Bamboo Asia</small><small style="opacity:.35">Digital Cards</small></div></div></header>
-    <p class="hint">멤버 선택</p>
-    <div style="display:flex;flex-direction:column;gap:.75rem;width:100%">
-      ${members.map(m=>`<a class="list-card" href="/card/${m.id}/"><div class="logo">b/a</div><div style="flex:1"><div style="font-weight:600">${m.name_kr||m.name_en||m.id}</div><div style="font-size:12px;opacity:.55">${m.name_en||''}</div><div style="font-size:11px;opacity:.4;margin-top:2px">${m.title_kr||m.title_en||''}</div></div><div style="opacity:.4">→</div></a>`).join('')}
-    </div>
-    <a class="backlink" href="/">← b/a home</a>`;
+  document.title='b/a Digital Cards';
+  document.getElementById('app').innerHTML=`<header><div class="brand"><div class="logo">b/a</div><div><small>Bamboo Asia</small></div></div></header><p class="hint">멤버 선택</p><div style="display:flex;flex-direction:column;gap:.75rem">${members.map(m=>`<a class="list-card" href="/card/${m.id}/"><div class="logo">b/a</div><div style="flex:1"><div style="font-weight:600">${m.name_kr||m.id}</div><div style="font-size:12px;opacity:.55">${m.name_en||''}</div><div style="font-size:11px;opacity:.4">${m.title_kr||m.title_en||''}</div></div><div style="opacity:.4">→</div></a>`).join('')}</div><a class="backlink" href="/">← b/a home</a>`;
 }
 function renderCard(m){
-  const role=m.title_en?`${m.title_en} / 베트남 사업 실행 플랫폼`:m.title_kr?`${m.title_kr} / 베트남 사업 실행 플랫폼`:'Representative / 베트남 사업 실행 플랫폼';
+  const role=m.title_en?(m.title_en+' / 베트남 사업 실행 플랫폼'):(m.title_kr||'Representative')+' / 베트남 사업 실행 플랫폼';
   const vcard=buildVCard(m);
-  document.title='b/a Digital Card · '+(m.name_kr||m.name_en||m.id)+' · Bamboo Asia';
-  document.getElementById('app').innerHTML=`
-    <header>
-      <div class="brand"><div class="logo">b/a</div><div><small>Bamboo Asia · 2025</small><small style="opacity:.35">b-a.bambooasia.biz</small></div></div>
-    </header>
-    <p class="hint">Tap card to flip · 뒤집기</p>
-    <div class="stage"><div class="flip" id="flip">
-      <div class="face front">
-        <div class="front-head">
-          <div>
-            <div class="mark">[ b/a ]</div>
-            <div class="gold"></div>
-            <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;opacity:.4">Bamboo Asia · Est. 2025</div>
-          </div>
-          <div class="qr-front" id="qrFront" title="Scan to save contact"></div>
-        </div>
-        <div class="name">${m.name_kr||m.name_en||''}</div>
-        <div class="name-en">${m.name_en||''}</div>
-        <div class="role">${role}</div>
-        <div class="org">b/a Bamboo Asia<br><span style="opacity:.6;font-weight:400;font-size:12px">Vietnam Business Execution Platform</span></div>
-        <div class="tagline">베트남 진출의 모든 과정을<br><strong>하나의 파트너</strong>와 함께</div>
-        <div class="chips">
-          <a class="chip" href="${telHref(m.phone)}">${m.phone||''}</a>
-          <a class="chip" href="mailto:${m.email||''}">${m.email||''}</a>
-        </div>
-        <div class="front-foot">
-          <div class="loc">Ho Chi Minh City · Seoul<br><span style="opacity:.7;letter-spacing:.08em">Scan QR · 연락처</span></div>
-        </div>
-      </div>
-      <div class="face back">
-        <div class="back-head">
-          <div style="display:flex;align-items:center;gap:.75rem">
-            <div class="logo">b/a</div>
-            <div><div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;opacity:.8">Bamboo Asia</div>
-            <div style="font-size:10px;opacity:.4">b-a.bambooasia.biz</div></div>
-          </div>
-          <div class="qr-back" id="qrBox" title="Scan to save contact"></div>
-        </div>
-        <div style="margin-top:1.1rem;font-family:Georgia,serif;font-size:15px">${m.name_kr||''} <span style="opacity:.5;font-size:12px;font-family:system-ui">${m.name_en||''}</span></div>
-        <div class="sec">Services</div>
-        <div class="services">
-          <span>법인설립</span><span>거래·M&A</span><span>산업별 현지화</span><span>보안·준법</span><span>운영지원</span>
-        </div>
-        <div class="sec">Contact</div>
-        <div class="rows">
-          <a class="row" href="${telHref(m.phone)}"><span class="ico">☎</span>${m.phone||''}</a>
-          <a class="row" href="mailto:${m.email||''}"><span class="ico">✉</span>${m.email||''}</a>
-          <a class="row" href="${SITE}" target="_blank" rel="noopener"><span class="ico">🌐</span>b-a.bambooasia.biz</a>
-        </div>
-        <div class="qr-note">Scan QR · vCard · 연락처 저장<br>Google / Apple Wallet</div>
-      </div>
-    </div></div>
-    <div class="actions">
-      <a class="btn btn-light" href="${telHref(m.phone)}">전화하기</a>
-      <a class="btn btn-ghost" href="mailto:${m.email||''}">이메일</a>
-      <button class="btn btn-green" type="button" id="vcardBtn">연락처 저장</button>
-      <button class="btn btn-ghost" type="button" id="qrSaveBtn">QR 저장</button>
-    </div>
-    <div class="actions" style="margin-top:.75rem">
-      <button class="btn btn-ghost" type="button" id="shareBtn" style="height:44px">공유하기</button>
-      <button class="btn btn-ghost" type="button" id="copyBtn" style="height:44px">링크 복사</button>
-    </div>
-    <div class="wallet-tip">
-      <strong>항상 QR 보이게 쓰기</strong><br>
-      1) <b>QR 저장</b> → 사진 앱에 PNG 보관 · 필요할 때 바로 제시<br>
-      2) <b>홈 화면 추가</b> → 이 페이지를 앱처럼 실행 (아래 안내)<br>
-      3) <b>연락처 저장</b> → .vcf 를 열어 Google/Apple 주소록에 추가<br>
-      4) 카메라로 전·후면 QR 스캔 → 연락처 바로 추가
-    </div>
-    <div class="wallet-tip" style="margin-top:.65rem">
-      <strong>홈 화면 추가</strong><br>
-      · <b>iPhone</b>: 공유 → 홈 화면에 추가<br>
-      · <b>Android</b>: 메뉴(⋮) → 홈 화면에 추가 / 앱 설치
-    </div>
-    <a class="backlink" href="/card/">← 멤버 목록</a>`;
-  const flip=document.getElementById('flip');
-  flip.addEventListener('click',(e)=>{
-    if(e.target.closest('a,button,input,.qr-front,.qr-back'))return;
-    flip.classList.toggle('on');
-  });
-  renderQr(document.getElementById('qrFront'), vcard, 88);
-  renderQr(document.getElementById('qrBox'), vcard, 88);
-  document.getElementById('vcardBtn').onclick=()=>downloadVCard(m);
-  document.getElementById('qrSaveBtn').onclick=()=>downloadQrImage(m);
-  document.getElementById('copyBtn').onclick=async()=>{
-    const url=`${SITE}/card/${m.id}/`;
-    try{await navigator.clipboard.writeText(url);}catch{}
-    toast('링크 복사됨');
-  };
-  document.getElementById('shareBtn').onclick=async()=>{
-    const url=`${SITE}/card/${m.id}/`;
-    try{
-      if(navigator.share){
-        await navigator.share({
-          title:`b/a · ${m.name_kr||m.name_en}`,
-          text:`${m.name_kr||m.name_en} · ${m.title_kr||m.title_en||''} · Bamboo Asia`,
-          url
-        });
-      }else{
-        await navigator.clipboard.writeText(url);
-        toast('링크 복사됨');
-      }
-    }catch{}
-  };
+  document.title='b/a · '+(m.name_kr||m.id);
+  document.getElementById('app').innerHTML=`<header><div class="brand"><div class="logo">b/a</div><div><small>Bamboo Asia</small></div></div></header><p class="hint">Tap card to flip</p><div class="stage"><div class="flip" id="flip"><div class="face front"><div class="front-head"><div><div class="mark">[ b/a ]</div><div class="gold"></div></div><div class="qr-front" id="qrFront"></div></div><div class="name">${m.name_kr||m.name_en||''}</div><div class="name-en">${m.name_en||''}</div><div class="role">${role}</div><div class="org">b/a Bamboo Asia</div><div class="tagline">베트남 진출의 모든 과정을 <strong>하나의 파트너</strong>와 함께</div><div class="chips"><a class="chip" href="${telHref(m.phone)}">${m.phone||''}</a><a class="chip" href="mailto:${m.email||''}">${m.email||''}</a></div><div class="front-foot"><div class="loc">Ho Chi Minh City · Seoul</div></div></div><div class="face back"><div class="back-head"><div style="display:flex;gap:.75rem;align-items:center"><div class="logo">b/a</div><div><div style="font-size:11px;letter-spacing:.18em;text-transform:uppercase">Bamboo Asia</div></div></div><div class="qr-back" id="qrBox"></div></div><div style="margin-top:1rem;font-family:Georgia,serif">${m.name_kr||''} <span style="opacity:.5;font-size:12px">${m.name_en||''}</span></div><div class="sec">Contact</div><div class="rows"><a class="row" href="${telHref(m.phone)}"><span class="ico">☎</span>${m.phone||''}</a><a class="row" href="mailto:${m.email||''}"><span class="ico">✉</span>${m.email||''}</a><a class="row" href="${SITE}" target="_blank" rel="noopener"><span class="ico">🌐</span>b-a.bambooasia.biz</a></div><div class="qr-note">Scan QR · vCard</div></div></div></div><div class="actions"><a class="btn btn-light" href="${telHref(m.phone)}">전화하기</a><a class="btn btn-ghost" href="mailto:${m.email||''}">이메일</a><button class="btn btn-green" type="button" id="vcardBtn">연락처 저장</button><button class="btn btn-ghost" type="button" id="qrSaveBtn">QR 저장</button></div><div class="actions" style="margin-top:.75rem"><button class="btn btn-ghost" type="button" id="shareBtn" style="height:44px">공유하기</button><button class="btn btn-ghost" type="button" id="copyBtn" style="height:44px">링크 복사</button></div><a class="backlink" href="/card/">← 멤버 목록</a>`;
+  document.getElementById('flip').onclick=function(e){if(e.target.closest('a,button,.qr-front,.qr-back'))return;this.classList.toggle('on');};
+  renderQr(document.getElementById('qrFront'),vcard,52);
+  renderQr(document.getElementById('qrBox'),vcard,52);
+  document.getElementById('vcardBtn').onclick=function(){downloadVCard(m);};
+  document.getElementById('qrSaveBtn').onclick=function(){downloadQrImage(m);};
+  document.getElementById('copyBtn').onclick=async function(){try{await navigator.clipboard.writeText(SITE+'/card/'+m.id+'/');}catch(e){}toast('링크 복사됨');};
+  document.getElementById('shareBtn').onclick=async function(){const url=SITE+'/card/'+m.id+'/';try{if(navigator.share)await navigator.share({title:'b/a · '+(m.name_kr||m.name_en),url});else{await navigator.clipboard.writeText(url);toast('링크 복사됨');}}catch(e){}};
 }
 (async function(){
   let members=FALLBACK;
@@ -344,8 +178,11 @@ function renderCard(m){
   }catch(e){}
   const id=memberId();
   if(!id){renderList(members);return;}
-  const m=members.find(x=>x.id===id)||members[0];
-  if(!m){document.getElementById('app').innerHTML='<p class="err">Member not found</p>';return;}
+  const m=members.find(function(x){return x.id===id;});
+  if(!m){
+    document.getElementById('app').innerHTML='<p class="err">멤버를 찾을 수 없습니다: <b>'+id+'</b></p><p class="err"><a href="/card/" style="color:#A3E635">명함 목록</a></p>';
+    return;
+  }
   renderCard(m);
 })();
 </script>
