@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
- * b-a static build — recovers UI from gz.b64 / part*.b64 / git history.
- * Applies CTA 상담하기 + btn-cta alignment. Builds /card/ digital cards.
+ * MAIN SITE ONLY static build.
+ * - Recovers UI from gz.b64 / part*.b64 / git history
+ * - Writes out/index.html, out/i18n.js, out/404.html, out/_redirects
+ * - Does NOT build digital cards (see build-digital-cards.mjs)
+ * - Card routes: SPA fallback via _redirects → /card/index.html
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { gunzipSync } from 'node:zlib';
-import { buildDigitalCards } from './build-digital-cards.mjs';
 
 const root = process.cwd();
 const outDir = join(root, 'out');
@@ -15,7 +17,7 @@ const FULL = join(scriptsDir, 'full-page.html');
 const I18N = join(scriptsDir, 'i18n.js');
 const FULL_GZ_B64 = join(scriptsDir, 'full-page.html.gz.b64');
 
-console.log('[cf-safe-build] consulting UI');
+console.log('[cf-safe-build] main site only (cards are separate)');
 
 function ensureDir(p) { mkdirSync(p, { recursive: true }); }
 function writeOut(rel, content) {
@@ -112,19 +114,20 @@ function loadI18n() {
 async function main() {
   if (existsSync(outDir)) rmSync(outDir, { recursive: true, force: true });
   ensureDir(outDir);
+
   const raw = await loadFullPage();
   const html = scrub(raw);
   writeOut('index.html', html);
+
   let i18n = loadI18n();
   if (i18n) {
     i18n = i18n
       .replaceAll('"ctaTop": "실행 상담하기"', '"ctaTop": "상담하기"')
       .replaceAll('"heroCTA1": "실행 상담하기"', '"heroCTA1": "상담하기"');
-    // /* i18n-compat */ ensure packages/targets exist for render()
     try {
       const m = i18n.match(/window\.I18N\s*=\s*(\{[\s\S]*\})\s*;?/);
       if (m) {
-        const obj = Function("return (" + m[1] + ")")();
+        const obj = Function('return (' + m[1] + ')')();
         for (const L of Object.keys(obj)) {
           const d = obj[L];
           if (d.pkgs && !d.packages) d.packages = d.pkgs;
@@ -135,20 +138,40 @@ async function main() {
             d.strengths = d.promise;
           }
         }
-        i18n = "window.I18N = " + JSON.stringify(obj) + ";";
+        i18n = 'window.I18N = ' + JSON.stringify(obj) + ';';
       }
-    } catch (e) { console.warn('[cf-safe-build] i18n compat patch failed', e.message); }
+    } catch (e) {
+      console.warn('[cf-safe-build] i18n compat patch failed', e.message);
+    }
     writeOut('i18n.js', i18n);
   } else {
     console.warn('[cf-safe-build] no i18n available');
   }
-  writeOut('404.html', '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>');
-  console.log('[cf-safe-build] done | EXECUTION=', html.includes('EXECUTION'), '| footerBrand=', html.includes('footerBrand'));
-  try {
-    const card = await buildDigitalCards();
-    console.log('[cf-safe-build] digital cards', card);
-  } catch (e) {
-    console.warn('[cf-safe-build] digital cards failed', e.message);
-  }
+
+  writeOut(
+    '404.html',
+    '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>'
+  );
+
+  writeOut(
+    '_redirects',
+    [
+      '# Digital card SPA — any /card/{id}/ serves lite SPA (CSV at runtime)',
+      '/card/*  /card/index.html  200',
+      '',
+    ].join('\n')
+  );
+
+  console.log(
+    '[cf-safe-build] done | EXECUTION=',
+    html.includes('EXECUTION'),
+    '| footerBrand=',
+    html.includes('footerBrand'),
+    '| (cards: run build-digital-cards.mjs separately)'
+  );
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

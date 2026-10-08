@@ -4,7 +4,9 @@
   "private": true,
   "description": "b/a Vietnam Business Execution Platform — mirrors www.bambooasia.biz UI",
   "scripts": {
-    "build": "node scripts/cf-safe-build.mjs"
+    "build": "node scripts/cf-safe-build.mjs && node scripts/build-digital-cards.mjs",
+    "build:main": "node scripts/cf-safe-build.mjs",
+    "build:cards": "node scripts/build-digital-cards.mjs"
   },
   "engines": {
     "node": ">=18"

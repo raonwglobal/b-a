@@ -1,24 +1,33 @@
 #!/usr/bin/env node
 /**
- * Build digital business cards at /card/ and /card/{id}/
- * Primary: scripts/digital-card-lite.html (CSV-driven SPA)
- * Optional: digital-card.partNN.b64 full React artifact
- * Not linked from main site navigation
+ * DIGITAL CARDS ONLY — isolated from main site build.
+ * Writes solely under out/card/**  (never touches index.html / i18n.js / footer)
+ *
+ * - Primary template: scripts/digital-card-lite.html (CSV-driven SPA)
+ * - /card/* SPA fallback is provided by main build (_redirects)
+ * - Still emits /card/{id}/ for known CSV members (static warm paths)
+ * - New sheet rows work after CSV publish via SPA + _redirects (no rebuild required for URL)
+ *
+ * Usage:
+ *   node scripts/build-digital-cards.mjs
+ *   npm run build:cards
  */
-import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 
 const root = process.cwd();
-const outDir = join(root, 'out', 'card');
+const outCardDir = join(root, 'out', 'card');
 const scriptsDir = join(root, 'scripts');
 const DEFAULT_CSV =
   'https://docs.google.com/spreadsheets/d/e/2PACX-1vROc_VAnbXFlbCyCAYvO4P0R6fEJgktqkNCrvShvUzgHBCv-10R5kXprgRpQFuYXM29tTXMTWp7eFXz/pub?gid=0&single=true&output=csv';
-const SITE = 'https://b-a.bambooasia.biz';
-const SITE_HOST = 'b-a.bambooasia.biz';
 
 function statSize(p) {
-  try { return readFileSync(p).length; } catch { return 0; }
+  try {
+    return readFileSync(p).length;
+  } catch {
+    return 0;
+  }
 }
 
 function loadTemplate() {
@@ -54,7 +63,9 @@ function parseCsv(text) {
     if (!lines[i].trim()) continue;
     const cols = lines[i].split(',');
     const row = {};
-    headers.forEach((h, idx) => { row[h] = (cols[idx] || '').trim(); });
+    headers.forEach((h, idx) => {
+      row[h] = (cols[idx] || '').trim();
+    });
     if (row.id) rows.push(row);
   }
   return rows;
@@ -89,28 +100,8 @@ function personalize(template, m) {
   return html;
 }
 
-function memberIndexHtml(members) {
-  const cards = members.map((m) => `
-    <a class="card" href="/card/${m.id}/">
-      <div class="logo">b/a</div>
-      <div class="meta">
-        <div class="name">${String(m.name_kr || m.name_en).replace(/</g,'&lt;')}</div>
-        <div class="en">${String(m.name_en || '').replace(/</g,'&lt;')}</div>
-        <div class="role">${String(m.title_kr || m.title_en || '').replace(/</g,'&lt;')}</div>
-      </div>
-      <div class="arrow">→</div>
-    </a>`).join('\n');
-  return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>b/a Digital Cards</title><meta name="robots" content="noindex"/>
-<style>
-body{margin:0;min-height:100vh;font-family:system-ui,sans-serif;background:#0C1611;color:#F9F5EB;display:flex;flex-direction:column;align-items:center;padding:2rem 1.25rem}
-.card{display:flex;align-items:center;gap:1rem;padding:1rem;border-radius:16px;background:rgba(249,245,235,.06);border:1px solid rgba(249,245,235,.12);color:inherit;text-decoration:none;width:100%;max-width:420px;margin-bottom:.75rem}
-.logo{width:40px;height:40px;border-radius:10px;background:#F9F5EB;color:#0C1611;display:flex;align-items:center;justify-content:center;font-weight:700}
-</style></head><body><h1 style="font-size:1rem;letter-spacing:.12em;text-transform:uppercase;opacity:.7">Digital Cards</h1>
-${cards}<p style="opacity:.35;font-size:11px;margin-top:2rem"><a href="/" style="color:#C2A77A">b/a home</a></p></body></html>`;
-}
-
 export async function buildDigitalCards() {
+  console.log('[digital-card] isolated card build (no main/footer touch)');
   const template = loadTemplate();
   if (!template) return { ok: false, reason: 'no-template' };
 
@@ -121,33 +112,55 @@ export async function buildDigitalCards() {
     const res = await fetch(csvUrl);
     if (!res.ok) throw new Error('CSV HTTP ' + res.status);
     members = parseCsv(await res.text());
-    console.log('[digital-card] members', members.map((m) => m.id).join(', '));
+    console.log('[digital-card] members', members.map((m) => m.id).join(', ') || '(none)');
   } catch (e) {
     console.warn('[digital-card] CSV fetch failed, fallback', e.message);
     members = [
-      { id: 'taehoon', name_kr: '김태훈', name_en: 'Taehoon Kim', title_kr: '대표', title_en: 'Representative', phone: '+84 093 685 0555', email: 'kim@bambooasia.biz' },
-      { id: 'magnox', name_kr: '정성영', name_en: 'Seongyoung Jeong', title_kr: '팀장', title_en: 'Team Manager', phone: '+84 093 896 7541', email: 'magnox@bambooasia.biz' },
+      {
+        id: 'taehoon',
+        name_kr: '김태훈',
+        name_en: 'Taehoon Kim',
+        title_kr: '대표',
+        title_en: 'Representative',
+        phone: '+84 093 685 0555',
+        email: 'kim@bambooasia.biz',
+      },
+      {
+        id: 'magnox',
+        name_kr: '정성영',
+        name_en: 'Seongyoung Jeong',
+        title_kr: '팀장',
+        title_en: 'Team Manager',
+        phone: '+84 093 896 7541',
+        email: 'magnox@bambooasia.biz',
+      },
     ];
   }
-  if (!members.length) return { ok: false, reason: 'no-members' };
 
-  mkdirSync(outDir, { recursive: true });
+  if (existsSync(outCardDir)) rmSync(outCardDir, { recursive: true, force: true });
+  mkdirSync(outCardDir, { recursive: true });
+
   const isLite = template.includes('CSV_URL') && template.includes('renderCard');
   if (isLite) {
-    writeFileSync(join(outDir, 'index.html'), template, 'utf8');
-    console.log('[digital-card] wrote /card/index.html (lite SPA)');
+    writeFileSync(join(outCardDir, 'index.html'), template, 'utf8');
+    console.log('[digital-card] wrote /card/index.html (lite SPA — source of truth)');
     for (const m of members) {
-      const dir = join(outDir, m.id);
+      const dir = join(outCardDir, m.id);
       mkdirSync(dir, { recursive: true });
       writeFileSync(join(dir, 'index.html'), template, 'utf8');
       console.log('[digital-card] wrote /card/' + m.id + '/');
     }
-    return { ok: true, members: members.map((m) => m.id), mode: 'lite' };
+    return { ok: true, members: members.map((m) => m.id), mode: 'lite-spa' };
   }
 
-  writeFileSync(join(outDir, 'index.html'), memberIndexHtml(members), 'utf8');
+  if (!members.length) return { ok: false, reason: 'no-members' };
+  writeFileSync(
+    join(outCardDir, 'index.html'),
+    `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"/><meta http-equiv="refresh" content="0;url=/card/${members[0].id}/"/><title>b/a Cards</title></head><body></body></html>`,
+    'utf8'
+  );
   for (const m of members) {
-    const dir = join(outDir, m.id);
+    const dir = join(outCardDir, m.id);
     mkdirSync(dir, { recursive: true });
     writeFileSync(join(dir, 'index.html'), personalize(template, m), 'utf8');
     console.log('[digital-card] wrote /card/' + m.id + '/');
@@ -158,6 +171,12 @@ export async function buildDigitalCards() {
 const isMain = process.argv[1] && process.argv[1].includes('build-digital-cards');
 if (isMain) {
   buildDigitalCards()
-    .then((r) => { if (!r?.ok) process.exitCode = 1; })
-    .catch((e) => { console.error(e); process.exit(1); });
+    .then((r) => {
+      console.log('[digital-card] result', r);
+      if (!r?.ok) process.exitCode = 1;
+    })
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
 }
