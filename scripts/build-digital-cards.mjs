@@ -4,7 +4,7 @@
  * Writes solely under out/card/**  (never touches index.html / i18n.js / footer)
  *
  * - Primary template: scripts/digital-card-lite.html (CSV-driven SPA)
- * - /card/* SPA fallback is provided by main build (_redirects)
+ * - /card SPA fallback via main _redirects → /card-spa.html (outside /card/)
  * - Still emits /card/{id}/ for known CSV members (static warm paths)
  * - New sheet rows work after CSV publish via SPA + _redirects (no rebuild required for URL)
  *
@@ -142,6 +142,12 @@ export async function buildDigitalCards() {
 
   const isLite = template.includes('CSV_URL') && template.includes('renderCard');
   if (isLite) {
+    // SPA entry used by _redirects (/card/:id → /card-spa.html) — outside /card/
+    // so Cloudflare does not flag an infinite loop (code 100324).
+    const spaRoot = join(root, 'out', 'card-spa.html');
+    writeFileSync(spaRoot, template, 'utf8');
+    console.log('[digital-card] wrote /card-spa.html (redirect target, outside /card/)');
+
     writeFileSync(join(outCardDir, 'index.html'), template, 'utf8');
     console.log('[digital-card] wrote /card/index.html (lite SPA — source of truth)');
     for (const m of members) {
