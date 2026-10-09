@@ -67,11 +67,27 @@ function scrub(text) {
       '<div style="margin-top:1rem;font-size:12px"><a href="/privacy" style="color:#667085;margin-right:1rem">개인정보처리방침</a><a href="/terms" style="color:#667085">이용약관</a></div>\n<div class="f-bot">'
     );
   }
+  // Consent row: dedicated markup so form input{width:100%;height:44px} does not stretch the checkbox
   if (!out.includes('name="privacy_agree"') && out.includes('id="submitBtn"')) {
     out = out.replace(
       '<button type="submit" class="btn-cta" id="submitBtn"',
-      '<label style="display:flex;align-items:flex-start;gap:.5rem;margin:0 0 1rem;font-size:12.5px;color:#667085;line-height:1.45;cursor:pointer"><input type="checkbox" name="privacy_agree" id="privacy_agree" required style="margin-top:.2rem;flex-shrink:0"/><span>문의 처리 및 회신을 위한 <a href="/privacy" target="_blank" rel="noopener" style="color:#16A34A">개인정보 수집·이용</a>에 동의합니다. (필수)</span></label>\n<button type="submit" class="btn-cta" id="submitBtn"'
+      '<div class="consent-row"><input type="checkbox" name="privacy_agree" id="privacy_agree" required/><label for="privacy_agree">문의 처리 및 회신을 위한 <a href="/privacy" target="_blank" rel="noopener">개인정보 수집·이용</a>에 동의합니다. <span class="req">(필수)</span></label></div>\n<button type="submit" class="btn-cta" id="submitBtn"'
     );
+  }
+  if (out.includes('privacy_agree') && !out.includes('.consent-row{')) {
+    out = out.replace(
+      '</style>',
+      'input[type="checkbox"]{width:auto!important;height:auto!important;min-width:16px;min-height:16px;margin:.15rem 0 0!important;padding:0!important;flex-shrink:0;accent-color:#16A34A;border-radius:3px;cursor:pointer}.consent-row{display:flex;align-items:flex-start;gap:.65rem;margin:.15rem 0 1.1rem;font-size:12.5px;color:#667085;line-height:1.5;width:100%;box-sizing:border-box}.consent-row label{display:block!important;margin:0!important;padding:0!important;font-weight:400!important;font-size:12.5px!important;color:#667085!important;line-height:1.5;cursor:pointer;flex:1;min-width:0}.consent-row a{color:#16A34A;text-decoration:underline;text-underline-offset:2px}.consent-row .req{color:#16A34A;font-weight:600}</style>'
+    );
+  }
+  if (out.includes('name="privacy_agree"') && out.includes('display:flex;align-items:flex-start') && !out.includes('class="consent-row"')) {
+    const leg = out.match(/<label style="display:flex;align-items:flex-start[\s\S]*?<\/label>/);
+    if (leg) {
+      out = out.replace(
+        leg[0],
+        '<div class="consent-row"><input type="checkbox" name="privacy_agree" id="privacy_agree" required/><label for="privacy_agree">문의 처리 및 회신을 위한 <a href="/privacy" target="_blank" rel="noopener">개인정보 수집·이용</a>에 동의합니다. <span class="req">(필수)</span></label></div>'
+      );
+    }
   }
   if (!out.includes('Room 1104 GoldenKing') && out.includes('id="footerEmail"')) {
     out = out.replace(
