@@ -76,7 +76,7 @@ function scrub(text) {
   if (!out.includes('Room 1104 GoldenKing') && out.includes('id="footerEmail"')) {
     out = out.replace(
       '<p style="margin:.55rem 0 0;font-size:12.5px;color:#667085"><a id="footerEmail"',
-      '<p style="margin:.55rem 0 0;font-size:12px;color:#98A2B3">bambooasia ([ b/a ] 컨설팅 그룹) · 대표 김태훈 · Room 1104 GoldenKing · HCMC · Vietnam</p>\n<p style="margin:.55rem 0 0;font-size:12.5px;color:#667085"><a id="footerEmail"'
+      '<p style="margin:.55rem 0 0;font-size:12px;color:#98A2B3">[ b/a ] 컨설팅 그룹 · 대표 김태훈 · Room 1104 GoldenKing · HCMC · Vietnam</p>\n<p style="margin:.55rem 0 0;font-size:12.5px;color:#667085"><a id="footerEmail"'
     );
   }
   return out;
