@@ -165,22 +165,31 @@ function scrub(text) {
       <p class="footer-line"><a id="footerEmail" href="mailto:info@bambooasia.biz">info@bambooasia.biz</a></p>
       <p class="footer-line"><a id="footerHost" class="footer-link" href="/">b-a.bambooasia.biz</a></p>
     </div>
-    <div class="footer-col">
-      <div class="footer-h" id="footerNavTitle">바로가기</div>
-      <nav class="footer-nav">
-        <a href="#svc-a" id="footerNavSvc">서비스</a>
-        <a href="#process" id="footerNavProcess">절차</a>
-        <a href="#inquiry" id="footerNavInquiry">문의</a>
-      </nav>
-      <div class="footer-h" id="footerLegalTitle">약관</div>
-      <nav class="footer-nav">
-        <a href="/privacy" id="footerPrivacy">개인정보처리방침</a>
-        <a href="/terms" id="footerTerms">이용약관</a>
-      </nav>
-      <div class="footer-h" id="footerRelatedTitle">관련 사이트</div>
-      <nav class="footer-nav">
-        <a href="https://www.bambooasia.biz" target="_blank" rel="noopener" id="footerRelated">bambooasia.biz</a>
-      </nav>
+    <div class="footer-col footer-col-links">
+      <div class="footer-links-row">
+        <div class="footer-link-block">
+          <div class="footer-h" id="footerNavTitle">바로가기</div>
+          <nav class="footer-nav">
+            <a href="#svc-a" id="footerNavSvc">서비스</a>
+            <a href="#process" id="footerNavProcess">절차</a>
+            <a href="#inquiry" id="footerNavInquiry">문의</a>
+          </nav>
+        </div>
+        <div class="footer-link-block">
+          <div class="footer-h" id="footerLegalTitle">약관</div>
+          <nav class="footer-nav">
+            <a href="/privacy" id="footerPrivacy">개인정보처리방침</a>
+            <a href="/terms" id="footerTerms">이용약관</a>
+          </nav>
+        </div>
+        <div class="footer-link-block">
+          <div class="footer-h" id="footerRelatedTitle">관련 사이트</div>
+          <nav class="footer-nav">
+            <a href="https://b-a.bambooasia.biz" id="footerRelated">b-a.bambooasia.biz</a>
+            <a href="https://khmmedia.co.kr" target="_blank" rel="noopener" id="footerRelated2">khmmedia.co.kr</a>
+          </nav>
+        </div>
+      </div>
     </div>
   </div>
   <div class="f-bot">
@@ -189,7 +198,7 @@ function scrub(text) {
 </div>
 </footer>`;
 
-  const FOOTER_CSS = `footer{background:#fff;border-top:1px solid rgba(0,0,0,.06);padding:2.25rem 0 1.5rem}.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:1.75rem 2rem}.footer-brand{display:inline-flex;align-items:center;gap:.65rem;text-decoration:none;color:inherit}.footer-brand span{font-size:13px;font-weight:600}.footer-desc{margin:.75rem 0 0;font-size:12.5px;color:#667085;max-width:42ch;line-height:1.55}.footer-note{margin:.65rem 0 0;font-size:11.5px;color:#98A2B3;max-width:42ch;line-height:1.5}.footer-h{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#98A2B3;margin:0 0 .55rem}.footer-col .footer-h:not(:first-child){margin-top:1.1rem}.footer-line{margin:0 0 .35rem;font-size:12.5px;color:#475467;line-height:1.45}.footer-link,.footer-line a{color:#16A34A;text-decoration:none;font-weight:500}.footer-link:hover,.footer-line a:hover{text-decoration:underline}.footer-nav{display:flex;flex-direction:column;gap:.4rem}.footer-nav a{font-size:12.5px;color:#475467;text-decoration:none}.footer-nav a:hover{color:#16A34A}.f-bot{margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,.05);font-size:11px;color:#98A2B3;display:flex;justify-content:flex-start;gap:1rem;flex-wrap:wrap}@media (max-width:860px){.footer-grid{grid-template-columns:1fr 1fr}}@media (max-width:560px){.footer-grid{grid-template-columns:1fr}}`;
+  const FOOTER_CSS = `footer{background:#fff;border-top:1px solid rgba(0,0,0,.06);padding:2.25rem 0 1.5rem}.footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1.7fr;gap:1.75rem 1.5rem}.footer-brand{display:inline-flex;align-items:center;gap:.65rem;text-decoration:none;color:inherit}.footer-brand span{font-size:13px;font-weight:600}.footer-desc{margin:.75rem 0 0;font-size:12.5px;color:#667085;max-width:42ch;line-height:1.55}.footer-note{margin:.65rem 0 0;font-size:11.5px;color:#98A2B3;max-width:42ch;line-height:1.5}.footer-h{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#98A2B3;margin:0 0 .55rem}.footer-col .footer-h:not(:first-child){margin-top:1.1rem}.footer-line{margin:0 0 .35rem;font-size:12.5px;color:#475467;line-height:1.45}.footer-link,.footer-line a{color:#16A34A;text-decoration:none;font-weight:500}.footer-link:hover,.footer-line a:hover{text-decoration:underline}.footer-nav{display:flex;flex-direction:column;gap:.4rem}.footer-nav a{font-size:12.5px;color:#475467;text-decoration:none}.footer-nav a:hover{color:#16A34A}.footer-links-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem 1rem;align-items:start}.footer-link-block .footer-h{margin-top:0}.footer-col-links .footer-h:not(:first-child){margin-top:0}.f-bot{margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,.05);font-size:11px;color:#98A2B3;display:flex;justify-content:flex-start;gap:1rem;flex-wrap:wrap}@media (max-width:860px){.footer-grid{grid-template-columns:1fr 1fr}}@media (max-width:700px){.footer-links-row{grid-template-columns:1fr 1fr}}@media (max-width:560px){.footer-grid{grid-template-columns:1fr}.footer-links-row{grid-template-columns:1fr}}`;
 
   if (out.includes('<footer')) {
     out = out.replace(/<footer[\s\S]*?<\/footer>/, NEW_FOOTER);
