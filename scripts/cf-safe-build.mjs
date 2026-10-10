@@ -1,11 +1,7 @@
 #!/usr/bin/env node
 /**
  * MAIN SITE ONLY static build.
- * - Recovers UI from gz.b64 / part*.b64 / git history
- * - Writes out/index.html, out/i18n.js, out/404.html, out/_redirects
- * - Copies privacy.html, terms.html
- * - Does NOT build digital cards (see build-digital-cards.mjs)
- * - Card routes: /card/:id → /card/?id=:id (302)
+ * Enhanced footer: hours, office, disclaimer, sections, related domain, © brand
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -17,6 +13,77 @@ const scriptsDir = join(root, 'scripts');
 const FULL = join(scriptsDir, 'full-page.html');
 const I18N = join(scriptsDir, 'i18n.js');
 const FULL_GZ_B64 = join(scriptsDir, 'full-page.html.gz.b64');
+
+const FOOTER_I18N = {
+  KR: {
+    footer: '[ b/a ] 컨설팅 그룹',
+    footer_entity: '[ b/a ] 컨설팅 그룹',
+    footer_rep: '대표 김태훈',
+    footer_hours: '운영시간: 월–금 09:00–18:00 (ICT)',
+    footer_disclaimer: '본 사이트는 소개 및 문의 접수 창구이며, 직접적인 정보 제공·가이드·자문을 하지 않습니다.',
+    footer_office_title: '사업장',
+    footer_nav_title: '바로가기',
+    footer_legal_title: '약관',
+    footer_related_title: '관련 사이트',
+    footer_privacy: '개인정보처리방침',
+    footer_terms: '이용약관',
+    footer_nav_svc: '서비스',
+    footer_nav_process: '절차',
+    footer_nav_inquiry: '문의',
+    footer_built: '',
+  },
+  EN: {
+    footer: '[ b/a ] Consulting Group',
+    footer_entity: '[ b/a ] Consulting Group',
+    footer_rep: 'Representative: Taehoon Kim',
+    footer_hours: 'Hours: Mon–Fri 09:00–18:00 (ICT)',
+    footer_disclaimer: 'This site is for introduction and inquiry intake only. It does not provide direct information, guidance, or professional advice.',
+    footer_office_title: 'Office',
+    footer_nav_title: 'Explore',
+    footer_legal_title: 'Legal',
+    footer_related_title: 'Related',
+    footer_privacy: 'Privacy Policy',
+    footer_terms: 'Terms of Use',
+    footer_nav_svc: 'Services',
+    footer_nav_process: 'Process',
+    footer_nav_inquiry: 'Contact',
+    footer_built: '',
+  },
+  VI: {
+    footer: '[ b/a ] Consulting Group',
+    footer_entity: '[ b/a ] Consulting Group',
+    footer_rep: 'Đại diện: Taehoon Kim',
+    footer_hours: 'Giờ làm việc: T2–T6 09:00–18:00 (ICT)',
+    footer_disclaimer: 'Trang này chỉ để giới thiệu và tiếp nhận liên hệ. Không cung cấp thông tin, hướng dẫn hoặc tư vấn trực tiếp.',
+    footer_office_title: 'Văn phòng',
+    footer_nav_title: 'Liên kết',
+    footer_legal_title: 'Pháp lý',
+    footer_related_title: 'Liên quan',
+    footer_privacy: 'Chính sách bảo mật',
+    footer_terms: 'Điều khoản sử dụng',
+    footer_nav_svc: 'Dịch vụ',
+    footer_nav_process: 'Quy trình',
+    footer_nav_inquiry: 'Liên hệ',
+    footer_built: '',
+  },
+  JP: {
+    footer: '[ b/a ] コンサルティンググループ',
+    footer_entity: '[ b/a ] コンサルティンググループ',
+    footer_rep: '代表 金泰勲',
+    footer_hours: '営業時間: 月–金 09:00–18:00 (ICT)',
+    footer_disclaimer: '本サイトは紹介およびお問い合わせ受付の窓口であり、直接的な情報提供・ガイド・助言は行いません。',
+    footer_office_title: '事業所',
+    footer_nav_title: 'リンク',
+    footer_legal_title: '規約',
+    footer_related_title: '関連サイト',
+    footer_privacy: 'プライバシーポリシー',
+    footer_terms: '利用規約',
+    footer_nav_svc: 'サービス',
+    footer_nav_process: '手順',
+    footer_nav_inquiry: 'お問い合わせ',
+    footer_built: '',
+  },
+};
 
 console.log('[cf-safe-build] main site only (cards are separate)');
 
@@ -76,10 +143,7 @@ function scrub(text) {
   if (out.includes('name="privacy_agree"') && out.includes('display:flex;align-items:flex-start') && !out.includes('class="consent-row"')) {
     const leg = out.match(/<label style="display:flex;align-items:flex-start[\s\S]*?<\/label>/);
     if (leg) {
-      out = out.replace(
-        leg[0],
-        '<div class="consent-row"><input type="checkbox" name="privacy_agree" id="privacy_agree" required/><label for="privacy_agree">문의 처리 및 회신을 위한 <a href="/privacy" target="_blank" rel="noopener">개인정보 수집·이용</a>에 동의합니다. <span class="req">(필수)</span></label></div>'
-      );
+      out = out.replace(leg[0], '<div class="consent-row"><input type="checkbox" name="privacy_agree" id="privacy_agree" required/><label for="privacy_agree">문의 처리 및 회신을 위한 <a href="/privacy" target="_blank" rel="noopener">개인정보 수집·이용</a>에 동의합니다. <span class="req">(필수)</span></label></div>');
     }
   }
 
@@ -103,7 +167,7 @@ function scrub(text) {
     </div>
     <div class="footer-col">
       <div class="footer-h" id="footerNavTitle">바로가기</div>
-      <nav class="footer-nav" id="footerNav">
+      <nav class="footer-nav">
         <a href="#svc-a" id="footerNavSvc">서비스</a>
         <a href="#process" id="footerNavProcess">절차</a>
         <a href="#inquiry" id="footerNavInquiry">문의</a>
@@ -125,7 +189,7 @@ function scrub(text) {
 </div>
 </footer>`;
 
-  const FOOTER_CSS = `footer{background:#fff;border-top:1px solid rgba(0,0,0,.06);padding:2.25rem 0 1.5rem}.footer-inner{padding:0}.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:1.75rem 2rem}.footer-brand{display:inline-flex;align-items:center;gap:.65rem;text-decoration:none;color:inherit}.footer-brand span{font-size:13px;font-weight:600}.footer-desc{margin:.75rem 0 0;font-size:12.5px;color:#667085;max-width:42ch;line-height:1.55}.footer-note{margin:.65rem 0 0;font-size:11.5px;color:#98A2B3;max-width:42ch;line-height:1.5}.footer-h{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#98A2B3;margin:0 0 .55rem}.footer-col .footer-h:not(:first-child){margin-top:1.1rem}.footer-line{margin:0 0 .35rem;font-size:12.5px;color:#475467;line-height:1.45}.footer-link,.footer-line a{color:#16A34A;text-decoration:none;font-weight:500}.footer-link:hover,.footer-line a:hover{text-decoration:underline}.footer-nav{display:flex;flex-direction:column;gap:.4rem}.footer-nav a{font-size:12.5px;color:#475467;text-decoration:none}.footer-nav a:hover{color:#16A34A}.f-bot{margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,.05);font-size:11px;color:#98A2B3;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}@media (max-width:860px){.footer-grid{grid-template-columns:1fr 1fr}}@media (max-width:560px){.footer-grid{grid-template-columns:1fr}}`;
+  const FOOTER_CSS = `footer{background:#fff;border-top:1px solid rgba(0,0,0,.06);padding:2.25rem 0 1.5rem}.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:1.75rem 2rem}.footer-brand{display:inline-flex;align-items:center;gap:.65rem;text-decoration:none;color:inherit}.footer-brand span{font-size:13px;font-weight:600}.footer-desc{margin:.75rem 0 0;font-size:12.5px;color:#667085;max-width:42ch;line-height:1.55}.footer-note{margin:.65rem 0 0;font-size:11.5px;color:#98A2B3;max-width:42ch;line-height:1.5}.footer-h{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#98A2B3;margin:0 0 .55rem}.footer-col .footer-h:not(:first-child){margin-top:1.1rem}.footer-line{margin:0 0 .35rem;font-size:12.5px;color:#475467;line-height:1.45}.footer-link,.footer-line a{color:#16A34A;text-decoration:none;font-weight:500}.footer-link:hover,.footer-line a:hover{text-decoration:underline}.footer-nav{display:flex;flex-direction:column;gap:.4rem}.footer-nav a{font-size:12.5px;color:#475467;text-decoration:none}.footer-nav a:hover{color:#16A34A}.f-bot{margin-top:1.5rem;padding-top:1rem;border-top:1px solid rgba(0,0,0,.05);font-size:11px;color:#98A2B3;display:flex;justify-content:flex-start;gap:1rem;flex-wrap:wrap}@media (max-width:860px){.footer-grid{grid-template-columns:1fr 1fr}}@media (max-width:560px){.footer-grid{grid-template-columns:1fr}}`;
 
   if (out.includes('<footer')) {
     out = out.replace(/<footer[\s\S]*?<\/footer>/, NEW_FOOTER);
@@ -220,6 +284,7 @@ async function main() {
             d.strength_title = d.promise[0]?.[0] || '';
             d.strengths = d.promise;
           }
+          if (FOOTER_I18N[L]) Object.assign(d, FOOTER_I18N[L]);
         }
         i18n = 'window.I18N = ' + JSON.stringify(obj) + ';';
       }
@@ -231,42 +296,16 @@ async function main() {
     console.warn('[cf-safe-build] no i18n available');
   }
 
-  writeOut(
-    '404.html',
-    '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>'
-  );
-
-  writeOut(
-    '_redirects',
-    [
-      '# Old path /card/{id}/ → query form so member id is never dropped',
-      '/card/:id   /card/?id=:id  302',
-      '/card/:id/  /card/?id=:id  302',
-      '',
-    ].join('\n')
-  );
+  writeOut('404.html', '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>');
+  writeOut('_redirects', ['# Old path /card/{id}/ → query form', '/card/:id   /card/?id=:id  302', '/card/:id/  /card/?id=:id  302', ''].join('\n'));
 
   for (const name of ['privacy.html', 'terms.html']) {
     const src = join(scriptsDir, name);
-    if (existsSync(src)) {
-      writeOut(name, readFileSync(src, 'utf8'));
-    } else {
-      console.warn('[cf-safe-build] missing', name);
-    }
+    if (existsSync(src)) writeOut(name, readFileSync(src, 'utf8'));
+    else console.warn('[cf-safe-build] missing', name);
   }
 
-  console.log(
-    '[cf-safe-build] done | EXECUTION=',
-    html.includes('EXECUTION'),
-    '| footerBrand=',
-    html.includes('footerBrand'),
-    '| privacy=',
-    html.includes('href="/privacy"'),
-    '| (cards: run build-digital-cards.mjs separately)'
-  );
+  console.log('[cf-safe-build] done | footer=', html.includes('footer-grid'), '| privacy=', html.includes('href="/privacy"'));
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+main().catch((e) => { console.error(e); process.exit(1); });
