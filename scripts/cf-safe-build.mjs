@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * MAIN SITE ONLY static build.
- * Enhanced footer: hours, office, disclaimer, sections, related domain, © brand
+ * Footer: hours, office, disclaimer, sections, legal (privacy/handling/terms/email-refusal), related sites
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -26,7 +26,9 @@ const FOOTER_I18N = {
     footer_legal_title: '약관',
     footer_related_title: '관련 사이트',
     footer_privacy: '개인정보처리방침',
+    footer_privacy_handling: '개인정보취급방침',
     footer_terms: '이용약관',
+    footer_email_refusal: '메일수집거부',
     footer_nav_svc: '서비스',
     footer_nav_process: '절차',
     footer_nav_inquiry: '문의',
@@ -43,7 +45,9 @@ const FOOTER_I18N = {
     footer_legal_title: 'Legal',
     footer_related_title: 'Related',
     footer_privacy: 'Privacy Policy',
+    footer_privacy_handling: 'Personal Data Handling Policy',
     footer_terms: 'Terms of Use',
+    footer_email_refusal: 'Email Collection Refusal',
     footer_nav_svc: 'Services',
     footer_nav_process: 'Process',
     footer_nav_inquiry: 'Contact',
@@ -60,7 +64,9 @@ const FOOTER_I18N = {
     footer_legal_title: 'Pháp lý',
     footer_related_title: 'Liên quan',
     footer_privacy: 'Chính sách bảo mật',
+    footer_privacy_handling: 'Chính sách xử lý dữ liệu',
     footer_terms: 'Điều khoản sử dụng',
+    footer_email_refusal: 'Từ chối thu thập email',
     footer_nav_svc: 'Dịch vụ',
     footer_nav_process: 'Quy trình',
     footer_nav_inquiry: 'Liên hệ',
@@ -77,7 +83,9 @@ const FOOTER_I18N = {
     footer_legal_title: '規約',
     footer_related_title: '関連サイト',
     footer_privacy: 'プライバシーポリシー',
+    footer_privacy_handling: '個人情報取扱方針',
     footer_terms: '利用規約',
+    footer_email_refusal: 'メール収集拒否',
     footer_nav_svc: 'サービス',
     footer_nav_process: '手順',
     footer_nav_inquiry: 'お問い合わせ',
@@ -179,7 +187,9 @@ function scrub(text) {
           <div class="footer-h" id="footerLegalTitle">약관</div>
           <nav class="footer-nav">
             <a href="/privacy" id="footerPrivacy">개인정보처리방침</a>
+            <a href="/privacy" id="footerPrivacyHandling">개인정보취급방침</a>
             <a href="/terms" id="footerTerms">이용약관</a>
+            <a href="/email-refusal" id="footerEmailRefusal">메일수집거부</a>
           </nav>
         </div>
         <div class="footer-link-block">
@@ -209,7 +219,7 @@ function scrub(text) {
   if (out.includes('footerDisclaimer') && !out.includes("setText('footerDisclaimer'")) {
     out = out.replace(
       "setText('footerBuilt',t.footer_built||'Built as secure execution platform');",
-      "setText('footerCopy',t.footer||'[ b/a ] 컨설팅 그룹');\n setText('footerDisclaimer',t.footer_disclaimer||'');\n setText('footerHours',t.footer_hours||'');\n setText('footerOfficeTitle',t.footer_office_title||'');\n setText('footerNavTitle',t.footer_nav_title||'');\n setText('footerLegalTitle',t.footer_legal_title||'');\n setText('footerRelatedTitle',t.footer_related_title||'');\n setText('footerPrivacy',t.footer_privacy||'');\n setText('footerTerms',t.footer_terms||'');\n setText('footerNavSvc',t.footer_nav_svc||'');\n setText('footerNavProcess',t.footer_nav_process||'');\n setText('footerNavInquiry',t.footer_nav_inquiry||'');\n setText('footerRep',t.footer_rep||'');\n setText('footerEntity',t.footer_entity||'[ b/a ] 컨설팅 그룹');"
+      "setText('footerCopy',t.footer||'[ b/a ] 컨설팅 그룹');\n setText('footerDisclaimer',t.footer_disclaimer||'');\n setText('footerHours',t.footer_hours||'');\n setText('footerOfficeTitle',t.footer_office_title||'');\n setText('footerNavTitle',t.footer_nav_title||'');\n setText('footerLegalTitle',t.footer_legal_title||'');\n setText('footerRelatedTitle',t.footer_related_title||'');\n setText('footerPrivacy',t.footer_privacy||'');\n setText('footerPrivacyHandling',t.footer_privacy_handling||'');\n setText('footerTerms',t.footer_terms||'');\n setText('footerEmailRefusal',t.footer_email_refusal||'');\n setText('footerNavSvc',t.footer_nav_svc||'');\n setText('footerNavProcess',t.footer_nav_process||'');\n setText('footerNavInquiry',t.footer_nav_inquiry||'');\n setText('footerRep',t.footer_rep||'');\n setText('footerEntity',t.footer_entity||'[ b/a ] 컨설팅 그룹');"
     );
   }
   out = out.replace(
@@ -308,7 +318,7 @@ async function main() {
   writeOut('404.html', '<!DOCTYPE html><html><body style="font-family:sans-serif;padding:2rem"><h1>404</h1><p><a href="/">b/a home</a></p></body></html>');
   writeOut('_redirects', ['# Old path /card/{id}/ → query form', '/card/:id   /card/?id=:id  302', '/card/:id/  /card/?id=:id  302', ''].join('\n'));
 
-  for (const name of ['privacy.html', 'terms.html']) {
+  for (const name of ['privacy.html', 'terms.html', 'email-refusal.html']) {
     const src = join(scriptsDir, name);
     if (existsSync(src)) writeOut(name, readFileSync(src, 'utf8'));
     else console.warn('[cf-safe-build] missing', name);
