@@ -1,75 +1,126 @@
-# 디지털 명함 추가 방법
+# 디지털 명함 (Digital Card)
 
 ## 배포 URL
 
-```
-https://b-a.bambooasia.biz/card/
-```
-
-## 아키텍처
-
-```
-scripts/digital-card.html   ← 단일 HTML (React 번들 포함, ~200KB)
-        ↓  npm run build (cf-safe-build.mjs)
-out/card/index.html         ← 정적 산출물
-        ↓  wrangler [assets] directory = "./out"
-https://b-a.bambooasia.biz/card/
+```text
+https://b-a.bambooasia.biz/card/              # 멤버 목록
+https://b-a.bambooasia.biz/card/{id}/         # 개인 명함 (예: taehoon)
+https://b-a.bambooasia.biz/card/?id={id}      # 동일 (query 형식)
 ```
 
-`src/worker.js`는 `ASSETS.fetch`로 `out/` 전체를 서빙하므로 **Worker 수정 불필요**합니다.
+메인 사이트 네비게이션에는 **연결하지 않습니다.**
 
-## 추가 절차 (로컬에서 1회)
+---
 
-1. 제공된 React Artifact HTML을 저장:
+## 아키텍처 (현재)
 
-```bash
-# 저장 위치
-cp path/to/pasted-card.html scripts/digital-card.html
+```text
+scripts/digital-card-lite.html   ← CSV 기반 클라이언트 SPA (소스 오브 트루스)
+        ↓  npm run build:cards  (또는 npm run build)
+out/card/index.html
+out/card-spa.html                ← Worker 폴백 대상 ( /card/ 밖 )
+out/card/{id}/index.html         ← 알려진 멤버 warm path (__CARD_ID__ 고정)
+        ↓  wrangler [assets] + src/worker.js
+https://b-a.bambooasia.biz/card/...
 ```
 
-2. (권장) 제목·canonical 정리:
+| 구성 요소 | 역할 |
+|-----------|------|
+| `digital-card-lite.html` | 플립 카드 UI, vCard, QR, 목록/상세 라우팅 |
+| `build-digital-cards.mjs` | **카드 전용** 빌드 — `out/card/**` 만 기록 |
+| `cf-safe-build.mjs` | 메인 전용 — `_redirects`에 `/card/:id → /card/?id=:id` (302) |
+| `src/worker.js` | 정적 `/card/{id}` 없으면 `/card-spa.html` 로 폴백 |
 
-```html
-<title>b/a Digital Card · 김태훈 · Bamboo Asia</title>
-<link rel="canonical" href="https://b-a.bambooasia.biz/card/" />
+메인 footer / `index.html` / `i18n.js` 와 **런타임·파일 모두 분리**되어 있습니다.
+
+---
+
+## 멤버 데이터 (Google Sheets CSV)
+
+빌드 시 및 브라우저 런타임에 CSV를 읽습니다.
+
+**필수 컬럼**
+
+```text
+id,name_kr,name_en,title_kr,title_en,phone,email
 ```
 
-3. 커밋 & 푸시:
+- `id`: URL 세그먼트 (영문 소문자·숫자 권장, 예: `taehoon`, `byeonggyu`)
+- 시트는 **웹에 게시(CSV)** 되어야 합니다.
+- 기본 CSV URL은 `scripts/build-digital-cards.mjs` / `digital-card-lite.html` 의 `DEFAULT_CSV` / `CSV_URL` 상수입니다.
+- 빌드 시 덮어쓰기: `MEMBER_CSV_URL=... npm run build:cards`
 
-```bash
-git add scripts/digital-card.html scripts/cf-safe-build.mjs
-git commit -m "feat: digital business card at /card/"
-git push origin main
-```
+### 신규 직원 추가
 
-4. Cloudflare 재배포 후 확인:
+1. 시트에 행 추가 (`id` 포함)
+2. CSV 게시가 최신인지 확인
+3. **재배포 없이** `/card/?id={새id}` 또는 Worker 폴백 경로로 접근 가능  
+   (warm path `/card/{id}/` 정적 파일을 쓰려면 `npm run build:cards` 후 배포)
 
-```
-https://b-a.bambooasia.biz/card/
-```
-
-## 카드에 포함된 연락처 (아티팩트 기준)
-
-| 항목 | 값 |
-|------|-----|
-| 이름 | 김태훈 / Taehoon Kim |
-| 이메일 | kim@bambooasia.biz |
-| 전화 | +84 093 685 0555 |
-| 웹 | https://b-a.bambooasia.biz |
-
-메인 문의 메일 `info@bambooasia.biz` 와는 별개입니다.
+---
 
 ## 기능
 
 - 앞/뒤 플립 카드
-- 이름·직함 인라인 편집
-- 전화 / 이메일 / 웹사이트
-- vCard 저장, 링크 복사, 공유
-- QR 스캔 → 사이트
+- 전화 / 이메일 / 웹사이트 링크
+- **vCard (.vcf) 저장** — Google/Apple 연락처
+- **전·후면 QR** (vCard 페이로드, CorrectLevel L + 이미지 API 폴백)
+- **QR 이미지 저장** (PNG)
+- 링크 복사 · Web Share API
+- 홈 화면 추가 안내 (iOS/Android)
 
-## 대안: gzip+base64 (대용량 Git 이슈 시)
+정식 **Google Wallet Pass API** (발급자 계정·JWT 서명) 는 포함되어 있지 않습니다.
+
+---
+
+## 빌드 · 배포
 
 ```bash
-gzip -c -9 scripts/digital-card.html | base64 -w0 > scripts/digital-card.html.gz.b64
-# plain html 없이 b64만 커밋해도 빌드가 복원함
+# 카드만
+npm run build:cards
+
+# 전체 (메인 후 카드)
+npm run build
 ```
+
+Cloudflare에 `out/` 이 자산으로 배포되어야 합니다. 자세한 내용: [README_CLOUDFLARE.md](../README_CLOUDFLARE.md)
+
+### 라우팅 주의
+
+| 방식 | 사용 여부 | 이유 |
+|------|-----------|------|
+| `/card/* → /card/index.html` **200** | ❌ 금지 | CF Infinite loop (100324) |
+| `/card/:id → /card/?id=:id` **302** | ✅ | `_redirects` |
+| Worker → `/card-spa.html` | ✅ | 정적 파일 없을 때 |
+
+---
+
+## 로컬에서 템플릿 수정
+
+```bash
+# 편집
+$EDITOR scripts/digital-card-lite.html
+
+# 카드만 다시 빌드
+npm run build:cards
+
+# 커밋
+git add scripts/digital-card-lite.html
+git commit -m "fix(card): ..."
+git push origin main
+```
+
+대용량 React 단일 파일(`digital-card.html` ~200KB) 방식은 **더 이상 기본 경로가 아닙니다.** 필요 시 part/b64 복구 경로는 빌드 스크립트에 남아 있으나, 운영 템플릿은 **lite SPA** 입니다.
+
+---
+
+## 예시 멤버 (fallback)
+
+CSV 로드 실패 시 스크립트 내장 예시:
+
+| id | 이름 | 메일 |
+|----|------|------|
+| taehoon | 김태훈 / Taehoon Kim | kim@bambooasia.biz |
+| magnox | 정성영 / Seongyoung Jeong | magnox@bambooasia.biz |
+
+메인 문의 메일 `info@bambooasia.biz` 와는 별개입니다.
