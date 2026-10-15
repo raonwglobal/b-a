@@ -39,9 +39,9 @@ header{display:flex;align-items:center;justify-content:center;margin-bottom:1rem
 .front-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;width:100%}
 .front-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-top:auto;padding-top:1rem}
 .loc{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.4;line-height:1.45}
-.qr-front,.qr-back{width:64px;height:64px;min-width:64px;min-height:64px;max-width:64px;max-height:64px;border-radius:12px;background:#fff;padding:0;border:1px solid rgba(12,22,17,.12);display:block;flex-shrink:0;box-shadow:0 4px 14px rgba(12,22,17,.1);overflow:hidden;position:relative;box-sizing:border-box}
+.qr-front,.qr-back{width:100px;height:100px;min-width:100px;min-height:100px;max-width:100px;max-height:100px;border-radius:6px;background:#fff;padding:0;border:1px solid rgba(12,22,17,.12);display:block;flex-shrink:0;box-shadow:0 4px 14px rgba(12,22,17,.1);overflow:visible;position:relative;box-sizing:border-box;z-index:2}
 .qr-back{border-color:rgba(249,245,235,.18);box-shadow:0 4px 14px rgba(0,0,0,.3)}
-.qr-front canvas,.qr-front img,.qr-back canvas,.qr-back img{position:absolute!important;inset:4px!important;width:calc(100% - 8px)!important;height:calc(100% - 8px)!important;max-width:none!important;max-height:none!important;object-fit:contain!important;display:block!important;margin:0!important;padding:0!important;image-rendering:auto}
+.qr-front canvas,.qr-front img,.qr-back canvas,.qr-back img{position:absolute!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain!important;display:block!important;margin:0!important;padding:0!important;border-radius:4px;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges}
 .back-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;width:100%}
 .back .sec{font-size:10px;letter-spacing:.2em;text-transform:uppercase;opacity:.35;margin:1.1rem 0 .55rem}
 .services{display:flex;flex-wrap:wrap;gap:.4rem}
@@ -119,7 +119,14 @@ function buildVCard(m){
   const title=m.title_en||m.title_kr||'';
   const tel=phoneDigits(m.phone);
   const email=m.email||'';
-  return ['BEGIN:VCARD','VERSION:3.0','FN:'+fn,'N:'+fn+';;;;','ORG:b/a - Bamboo Asia','TITLE:'+title,tel?'TEL;TYPE=CELL:'+tel:'',email?'EMAIL:'+email:'','URL:'+SITE,'END:VCARD'].filter(Boolean).join('\n');
+  /* Minimal vCard 3.0 — shorter payload = fewer QR modules = easier scan at on-card size */
+  const lines=['BEGIN:VCARD','VERSION:3.0','FN:'+fn,'N:'+fn+';;;;'];
+  if(title)lines.push('TITLE:'+title);
+  lines.push('ORG:[ b/a ]');
+  if(tel)lines.push('TEL;TYPE=CELL:'+tel);
+  if(email)lines.push('EMAIL;TYPE=INTERNET:'+email);
+  lines.push('URL:'+SITE,'END:VCARD');
+  return lines.join('\n');
 }
 function downloadVCard(m){
   const blob=new Blob([buildVCard(m)],{type:'text/vcard;charset=utf-8'});
@@ -135,46 +142,42 @@ function downloadQrImage(m){
   const a=document.createElement('a');a.href=url;a.download=filename;a.target='_blank';a.rel='noopener';a.click();toast('QR 이미지 열림');
 }
 function qrImageUrl(text,size,margin,ecc){
-  size=size||256;margin=margin==null?4:margin;ecc=ecc||'M';
+  size=size||400;margin=margin==null?2:margin;ecc=ecc||'M';
   return 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&ecc='+ecc+'&margin='+margin+'&format=png&data='+encodeURIComponent(text);
 }
 function renderQr(el,text){
   if(!el)return;
+  /* Always use the same high-res PNG engine as "QR 저장" (not qrcodejs canvas).
+     Small CSS boxes + border-radius/overflow clipping + 3D flip made on-card QR unscannable. */
   el.innerHTML='';
-  const box=64;
+  const box=100;
   el.style.width=box+'px';
   el.style.height=box+'px';
   el.style.minWidth=box+'px';
   el.style.minHeight=box+'px';
   el.style.position='relative';
-  el.style.overflow='hidden';
-  /* High-res source (same engine as QR 저장) scaled into the box — small native 48px + L-level ECC was unreadable */
-  const drawImg=()=>{
+  el.style.overflow='visible';
+  el.style.background='#ffffff';
+  const img=document.createElement('img');
+  img.alt='QR vCard';
+  img.width=400;img.height=400;
+  img.decoding='async';
+  img.draggable=false;
+  img.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;display:block;border-radius:4px;image-rendering:-webkit-optimize-contrast';
+  img.src=qrImageUrl(text,400,2,'M');
+  img.onerror=function(){
+    /* offline / API fail fallback: local canvas via qrcodejs if available */
+    if(typeof QRCode==='undefined')return;
     el.innerHTML='';
-    const img=document.createElement('img');
-    img.alt='QR vCard';
-    img.width=256;img.height=256;
-    img.decoding='async';
-    img.style.cssText='position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);object-fit:contain;display:block';
-    img.src=qrImageUrl(text,256,4,'M');
-    el.appendChild(img);
+    try{
+      new QRCode(el,{text:text,width:200,height:200,colorDark:'#0C1611',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+      const c=el.querySelector('canvas');const tb=el.querySelector('table');const im=el.querySelector('img');
+      if(tb)tb.style.display='none';
+      if(c){c.style.cssText='position:absolute;top:0;left:0;width:100%!important;height:100%!important;display:block';}
+      if(im&&c)im.style.display='none';
+    }catch(e){}
   };
-  try{
-    if(typeof QRCode==='undefined'){drawImg();return;}
-    /* Draw at high internal resolution then CSS-scale for sharp modules */
-    const px=192;
-    new QRCode(el,{text:text,width:px,height:px,colorDark:'#0C1611',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
-    const canvas=el.querySelector('canvas');
-    const table=el.querySelector('table');
-    const img=el.querySelector('img');
-    if(table)table.style.display='none';
-    if(canvas){
-      canvas.style.cssText='position:absolute;inset:4px;width:calc(100% - 8px)!important;height:calc(100% - 8px)!important;display:block';
-      if(img)img.style.display='none';
-    }else if(img){
-      img.style.cssText='position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);object-fit:contain;display:block';
-    }else drawImg();
-  }catch(e){drawImg();}
+  el.appendChild(img);
 }
 function renderList(members){
   document.title='b/a Digital Cards';
